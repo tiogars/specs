@@ -29,5 +29,4 @@ pnpm build
 
 ## Deployment
 
-- `.github/workflows/deploy-webapp.yml` deploys the webapp to GitHub Pages root
-- `.github/workflows/deploy-docs.yml` builds MkDocs Material docs and deploys them to `/doc`
+- `.github/workflows/deploy-webapp.yml` builds the webapp, publishes it at the GitHub Pages root, and publishes MkDocs under `/docs`
