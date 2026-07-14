@@ -84,7 +84,7 @@ async function hydrateProject(db: PGlite, project: DbProject): Promise<Project> 
   }
 }
 
-function normalizeProjectValue(value: string) {
+function normalizeAndValidateProjectValue(value: string) {
   const normalizedValue = value.trim()
   if (!normalizedValue) {
     throw new Error('Project value is required')
@@ -150,7 +150,7 @@ export function createPgliteProjectRepository(): ProjectRepository {
         return null
       }
 
-      const normalizedRole = normalizeProjectValue(role)
+      const normalizedRole = normalizeAndValidateProjectValue(role)
       const existingRole = await db.query<{ id: number }>(
         'SELECT id FROM project_roles WHERE project_id = $1 AND value = $2 LIMIT 1',
         [projectId, normalizedRole],
@@ -170,7 +170,7 @@ export function createPgliteProjectRepository(): ProjectRepository {
         return null
       }
 
-      const normalizedUseCase = normalizeProjectValue(useCase)
+      const normalizedUseCase = normalizeAndValidateProjectValue(useCase)
       const existingUseCase = await db.query<{ id: number }>(
         'SELECT id FROM project_use_cases WHERE project_id = $1 AND value = $2 LIMIT 1',
         [projectId, normalizedUseCase],
