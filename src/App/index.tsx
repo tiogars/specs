@@ -24,16 +24,11 @@ import FolderIcon from '@mui/icons-material/Folder'
 import GroupsIcon from '@mui/icons-material/Groups'
 import AutoStoriesIcon from '@mui/icons-material/AutoStories'
 import HomeIcon from '@mui/icons-material/Home'
-import { createPgliteProjectRepository, type ProjectRepository } from './projectRepository'
-import { parseLines } from './parseLines'
+import { createPgliteProjectRepository, type ProjectRepository } from '../projectRepository'
+import { parseLines } from '../parseLines'
+import type { AppProps, ProjectDetailPageProps, ProjectFormValues, ProjectsPageProps } from './App.types'
 
-type ProjectFormValues = {
-  name: string
-  roles: string
-  useCases: string
-}
-
-function ProjectsPage({ repository }: { repository: ProjectRepository }) {
+const ProjectsPage = ({ repository }: ProjectsPageProps) => {
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [refreshKey, setRefreshKey] = useState(0)
@@ -159,7 +154,7 @@ function ProjectsPage({ repository }: { repository: ProjectRepository }) {
   )
 }
 
-function ProjectDetailPage({ repository }: { repository: ProjectRepository }) {
+const ProjectDetailPage = ({ repository }: ProjectDetailPageProps) => {
   const { projectId } = useParams()
   const [loading, setLoading] = useState(true)
   const [project, setProject] = useState<Awaited<ReturnType<ProjectRepository['getProject']>>>(null)
@@ -332,7 +327,7 @@ function ProjectDetailPage({ repository }: { repository: ProjectRepository }) {
   )
 }
 
-function App({ repository }: { repository?: ProjectRepository }) {
+const App = ({ repository }: AppProps) => {
   const resolvedRepository = useMemo(() => repository ?? createPgliteProjectRepository(), [repository])
   const docsHref = `${import.meta.env.BASE_URL}docs/`
 
