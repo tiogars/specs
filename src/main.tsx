@@ -18,7 +18,7 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <BrowserRouter>
+      <BrowserRouter basename="/specs/">
         <App />
       </BrowserRouter>
     </ThemeProvider>
