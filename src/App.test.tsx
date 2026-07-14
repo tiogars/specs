@@ -7,14 +7,14 @@ class InMemoryProjectRepository implements ProjectRepository {
   private projects: Project[] = []
   private nextId = 1
 
-  private normalizeValue(value: string) {
+  private normalizeAndValidateTextField(value: string, fieldLabel: string) {
     const normalizedValue = value.trim()
     if (!normalizedValue) {
-      throw new Error('Project value is required')
+      throw new Error(`${fieldLabel} is required`)
     }
 
     if (normalizedValue.length > 255) {
-      throw new Error('Project value is too long')
+      throw new Error(`${fieldLabel} exceeds maximum length of 255 characters`)
     }
 
     return normalizedValue
@@ -48,7 +48,7 @@ class InMemoryProjectRepository implements ProjectRepository {
       return null
     }
 
-    const normalizedRole = this.normalizeValue(role)
+    const normalizedRole = this.normalizeAndValidateTextField(role, 'Role')
     if (!project.roles.includes(normalizedRole)) {
       project.roles = [...project.roles, normalizedRole]
     }
@@ -62,7 +62,7 @@ class InMemoryProjectRepository implements ProjectRepository {
       return null
     }
 
-    const normalizedUseCase = this.normalizeValue(useCase)
+    const normalizedUseCase = this.normalizeAndValidateTextField(useCase, 'Use case')
     if (!project.useCases.includes(normalizedUseCase)) {
       project.useCases = [...project.useCases, normalizedUseCase]
     }

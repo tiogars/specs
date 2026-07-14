@@ -84,14 +84,14 @@ async function hydrateProject(db: PGlite, project: DbProject): Promise<Project> 
   }
 }
 
-function normalizeAndValidateProjectValue(value: string) {
+function normalizeAndValidateTextField(value: string, fieldLabel: string) {
   const normalizedValue = value.trim()
   if (!normalizedValue) {
-    throw new Error('Project value is required')
+    throw new Error(`${fieldLabel} is required`)
   }
 
   if (normalizedValue.length > 255) {
-    throw new Error('Project value is too long')
+    throw new Error(`${fieldLabel} exceeds maximum length of 255 characters`)
   }
 
   return normalizedValue
@@ -150,7 +150,7 @@ export function createPgliteProjectRepository(): ProjectRepository {
         return null
       }
 
-      const normalizedRole = normalizeAndValidateProjectValue(role)
+      const normalizedRole = normalizeAndValidateTextField(role, 'Role')
       const existingRole = await db.query<{ id: number }>(
         'SELECT id FROM project_roles WHERE project_id = $1 AND value = $2 LIMIT 1',
         [projectId, normalizedRole],
@@ -170,7 +170,7 @@ export function createPgliteProjectRepository(): ProjectRepository {
         return null
       }
 
-      const normalizedUseCase = normalizeAndValidateProjectValue(useCase)
+      const normalizedUseCase = normalizeAndValidateTextField(useCase, 'Use case')
       const existingUseCase = await db.query<{ id: number }>(
         'SELECT id FROM project_use_cases WHERE project_id = $1 AND value = $2 LIMIT 1',
         [projectId, normalizedUseCase],
