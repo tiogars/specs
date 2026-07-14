@@ -1,4 +1,4 @@
-name: Deploy webapp
+name: Deploy Pages
 
 on:
   push:
@@ -9,7 +9,7 @@ permissions:
   contents: write
 
 jobs:
-  deploy-webapp:
+  deploy-pages:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -26,16 +26,28 @@ jobs:
           node-version: 22
           cache: pnpm
 
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Install MkDocs Material
+        run: pip install mkdocs-material
 
       - name: Build webapp
         run: pnpm build
 
-      - name: Deploy webapp to GitHub Pages root
+      - name: Build docs
+        run: |
+          [ -d dist ] || { echo "Validation failed: dist directory not found after the webapp build. Check the webapp build step output above for errors."; exit 1; }
+          mkdocs build --strict --site-dir dist/docs
+
+      # Publish the entire dist directory atomically so the app root and /docs stay in sync.
+      - name: Deploy app and docs to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./dist
-          destination_dir: .
-          keep_files: true

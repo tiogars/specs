@@ -13,4 +13,4 @@ This repository contains an offline-first **Specs Builder** web application.
 Open the webapp on GitHub Pages and create a sample project to verify the application behavior.
 
 - Webapp: `https://tiogars.github.io/specs/`
-- Docs: `https://tiogars.github.io/specs/doc/`
+- Docs: `https://tiogars.github.io/specs/docs/`
