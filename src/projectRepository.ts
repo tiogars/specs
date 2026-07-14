@@ -145,6 +145,7 @@ export function createPgliteProjectRepository(): ProjectRepository {
 
     async addProjectRole(projectId, role) {
       const db = await getDatabase()
+      // hydrateProject needs both id and name to return a complete project payload after update.
       const project = await db.query<DbProject>('SELECT id, name FROM projects WHERE id = $1', [projectId])
       if (!project.rows[0]) {
         return null
@@ -165,6 +166,7 @@ export function createPgliteProjectRepository(): ProjectRepository {
 
     async addProjectUseCase(projectId, useCase) {
       const db = await getDatabase()
+      // hydrateProject needs both id and name to return a complete project payload after update.
       const project = await db.query<DbProject>('SELECT id, name FROM projects WHERE id = $1', [projectId])
       if (!project.rows[0]) {
         return null

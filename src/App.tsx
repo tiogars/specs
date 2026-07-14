@@ -211,15 +211,14 @@ function ProjectDetailPage({ repository }: { repository: ProjectRepository }) {
   }
 
   const handleAddRole = async () => {
-    const role = newRole.trim()
-    if (!role) {
+    if (!newRole.trim()) {
       return
     }
 
     setSaveError(null)
 
     try {
-      const updatedProject = await repository.addProjectRole(project.id, role)
+      const updatedProject = await repository.addProjectRole(project.id, newRole)
       if (!updatedProject) {
         setSaveError('Project not found.')
         return
@@ -238,15 +237,14 @@ function ProjectDetailPage({ repository }: { repository: ProjectRepository }) {
   }
 
   const handleAddUseCase = async () => {
-    const useCase = newUseCase.trim()
-    if (!useCase) {
+    if (!newUseCase.trim()) {
       return
     }
 
     setSaveError(null)
 
     try {
-      const updatedProject = await repository.addProjectUseCase(project.id, useCase)
+      const updatedProject = await repository.addProjectUseCase(project.id, newUseCase)
       if (!updatedProject) {
         setSaveError('Project not found.')
         return
