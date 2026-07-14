@@ -5,6 +5,7 @@ import { CssBaseline, ThemeProvider, createTheme } from '@mui/material'
 import { registerSW } from 'virtual:pwa-register'
 import './index.css'
 import App from './App'
+import { getRouterBasename } from './routerBasename'
 
 const theme = createTheme({
   palette: {
@@ -13,10 +14,6 @@ const theme = createTheme({
 })
 
 registerSW({ immediate: true })
-
-function getRouterBasename(baseUrl: string) {
-  return baseUrl === '/' ? baseUrl : baseUrl.replace(/\/$/, '')
-}
 
 const routerBasename = getRouterBasename(import.meta.env.BASE_URL)
 
