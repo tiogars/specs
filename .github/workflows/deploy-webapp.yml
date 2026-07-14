@@ -42,7 +42,7 @@ jobs:
 
       - name: Build docs
         run: |
-          [ -d dist ] || { echo "Validation failed: dist directory not found after the webapp build. Check the 'Build webapp' step logs for errors."; exit 1; }
+          [ -d dist ] || { echo "Validation failed: dist directory not found after the webapp build. Check the earlier workflow logs for build errors."; exit 1; }
           mkdocs build --strict --site-dir dist/docs
 
       # Publish the entire dist directory atomically so the app root and /docs stay in sync.
