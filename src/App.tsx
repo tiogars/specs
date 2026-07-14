@@ -256,16 +256,25 @@ function ProjectDetailPage({ repository }: { repository: ProjectRepository }) {
 
 function App({ repository }: { repository?: ProjectRepository }) {
   const resolvedRepository = useMemo(() => repository ?? createPgliteProjectRepository(), [repository])
+  const docsHref = `${import.meta.env.BASE_URL}docs/`
 
   return (
     <>
       <AppBar position="static" color="transparent" elevation={0}>
         <Toolbar>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+          <Typography
+            variant="h6"
+            component={RouterLink}
+            to="/"
+            sx={{ flexGrow: 1, textDecoration: 'none', color: 'inherit' }}
+          >
             Specs webapp
           </Typography>
           <Button component={RouterLink} to="/" startIcon={<FolderIcon />}>
             Projects
+          </Button>
+          <Button component="a" href={docsHref} startIcon={<AutoStoriesIcon />} target="_blank" rel="noreferrer">
+            Documentation
           </Button>
         </Toolbar>
       </AppBar>
