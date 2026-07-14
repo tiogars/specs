@@ -7,6 +7,19 @@ class InMemoryProjectRepository implements ProjectRepository {
   private projects: Project[] = []
   private nextId = 1
 
+  private normalizeValue(value: string) {
+    const normalizedValue = value.trim()
+    if (!normalizedValue) {
+      throw new Error('Project value is required')
+    }
+
+    if (normalizedValue.length > 255) {
+      throw new Error('Project value is too long')
+    }
+
+    return normalizedValue
+  }
+
   async listProjects() {
     return this.projects
   }
@@ -35,7 +48,11 @@ class InMemoryProjectRepository implements ProjectRepository {
       return null
     }
 
-    project.roles = [...project.roles, role]
+    const normalizedRole = this.normalizeValue(role)
+    if (!project.roles.includes(normalizedRole)) {
+      project.roles = [...project.roles, normalizedRole]
+    }
+
     return project
   }
 
@@ -45,7 +62,11 @@ class InMemoryProjectRepository implements ProjectRepository {
       return null
     }
 
-    project.useCases = [...project.useCases, useCase]
+    const normalizedUseCase = this.normalizeValue(useCase)
+    if (!project.useCases.includes(normalizedUseCase)) {
+      project.useCases = [...project.useCases, normalizedUseCase]
+    }
+
     return project
   }
 }
@@ -101,12 +122,18 @@ describe('App', () => {
 
     fireEvent.change(screen.getByLabelText('New role'), { target: { value: 'Manager' } })
     fireEvent.click(screen.getByRole('button', { name: 'Add role' }))
+    fireEvent.change(screen.getByLabelText('New role'), { target: { value: ' Manager ' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Add role' }))
     fireEvent.change(screen.getByLabelText('New use case'), { target: { value: 'Approve payment' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Add use case' }))
+    fireEvent.change(screen.getByLabelText('New use case'), { target: { value: ' Approve payment ' } })
     fireEvent.click(screen.getByRole('button', { name: 'Add use case' }))
 
     await waitFor(() => {
       expect(screen.getByText('Manager')).toBeInTheDocument()
       expect(screen.getByText('Approve payment')).toBeInTheDocument()
+      expect(screen.getAllByText('Manager')).toHaveLength(1)
+      expect(screen.getAllByText('Approve payment')).toHaveLength(1)
     })
   })
 })
