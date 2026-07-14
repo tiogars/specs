@@ -3,7 +3,6 @@ import { Link as RouterLink, Navigate, Route, Routes, useParams } from 'react-ro
 import { useForm } from 'react-hook-form'
 import {
   Alert,
-  AppBar,
   Button,
   Card,
   CardContent,
@@ -16,7 +15,6 @@ import {
   ListItemText,
   Stack,
   TextField,
-  Toolbar,
   Typography,
 } from '@mui/material'
 import AddCircleIcon from '@mui/icons-material/AddCircle'
@@ -26,6 +24,7 @@ import AutoStoriesIcon from '@mui/icons-material/AutoStories'
 import HomeIcon from '@mui/icons-material/Home'
 import { createPgliteProjectRepository, type ProjectRepository } from '../projectRepository'
 import { parseLines } from '../parseLines'
+import Header from '../components/Header'
 import type { AppProps, ProjectDetailPageProps, ProjectFormValues, ProjectsPageProps } from './App.types'
 
 const ProjectsPage = ({ repository }: ProjectsPageProps) => {
@@ -333,24 +332,7 @@ const App = ({ repository }: AppProps) => {
 
   return (
     <>
-      <AppBar position="static" color="transparent" elevation={0}>
-        <Toolbar>
-          <Typography
-            variant="h6"
-            component={RouterLink}
-            to="/"
-            sx={{ flexGrow: 1, textDecoration: 'none', color: 'inherit' }}
-          >
-            Specs webapp
-          </Typography>
-          <Button component={RouterLink} to="/" startIcon={<FolderIcon />}>
-            Projects
-          </Button>
-          <Button component="a" href={docsHref} startIcon={<AutoStoriesIcon />} target="_blank" rel="noreferrer">
-            Documentation
-          </Button>
-        </Toolbar>
-      </AppBar>
+      <Header docsHref={docsHref} />
       <Container sx={{ py: 4 }} maxWidth="md">
         <Routes>
           <Route path="/" element={<ProjectsPage repository={resolvedRepository} />} />
