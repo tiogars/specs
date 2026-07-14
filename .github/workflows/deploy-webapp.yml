@@ -42,7 +42,7 @@ jobs:
 
       - name: Build docs
         run: |
-          test -d dist
+          [ -d dist ] || { echo "Error: dist directory not found after webapp build"; exit 1; }
           mkdocs build --strict --site-dir dist/docs
 
       # Publish the entire dist directory atomically so the app root and /docs stay in sync.
