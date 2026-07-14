@@ -41,11 +41,12 @@ jobs:
         run: pnpm build
 
       - name: Build docs
-        run: mkdocs build --strict --site-dir dist/docs
+        run: |
+          mkdir -p dist
+          mkdocs build --strict --site-dir dist/docs
 
       - name: Deploy app and docs to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./dist
-          destination_dir: .
