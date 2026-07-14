@@ -31,6 +31,20 @@ class InMemoryProjectRepository implements ProjectRepository {
 }
 
 describe('App', () => {
+  it('renders top-level navigation links', () => {
+    const repository = new InMemoryProjectRepository()
+
+    render(
+      <MemoryRouter initialEntries={['/']}>
+        <App repository={repository} />
+      </MemoryRouter>,
+    )
+
+    expect(screen.getByRole('link', { name: 'Specs webapp' })).toHaveAttribute('href', '/')
+    expect(screen.getByRole('link', { name: 'Projects' })).toHaveAttribute('href', '/')
+    expect(screen.getByRole('link', { name: 'Documentation' })).toHaveAttribute('href', '/docs/')
+  })
+
   it('creates a project and renders project details', async () => {
     const repository = new InMemoryProjectRepository()
 
