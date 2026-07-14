@@ -14,7 +14,10 @@ const theme = createTheme({
 
 registerSW({ immediate: true })
 
-const routerBasename = import.meta.env.BASE_URL.replace(/\/$/, '') || '/'
+const routerBasename =
+  import.meta.env.BASE_URL !== '/' && import.meta.env.BASE_URL.endsWith('/')
+    ? import.meta.env.BASE_URL.slice(0, -1)
+    : import.meta.env.BASE_URL
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
