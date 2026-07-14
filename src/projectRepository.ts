@@ -17,6 +17,8 @@ export type ProjectRepository = {
   listProjects: () => Promise<Project[]>
   getProject: (projectId: number) => Promise<Project | null>
   createProject: (input: CreateProjectInput) => Promise<Project>
+  addProjectRole: (projectId: number, role: string) => Promise<Project | null>
+  addProjectUseCase: (projectId: number, useCase: string) => Promise<Project | null>
 }
 
 type DbProject = {
@@ -82,6 +84,19 @@ async function hydrateProject(db: PGlite, project: DbProject): Promise<Project> 
   }
 }
 
+function normalizeAndValidateTextField(value: string, fieldLabel: string) {
+  const normalizedValue = value.trim()
+  if (!normalizedValue) {
+    throw new Error(`${fieldLabel} is required`)
+  }
+
+  if (normalizedValue.length > 255) {
+    throw new Error(`${fieldLabel} exceeds maximum length of 255 characters`)
+  }
+
+  return normalizedValue
+}
+
 export function createPgliteProjectRepository(): ProjectRepository {
   return {
     async listProjects() {
@@ -126,6 +141,51 @@ export function createPgliteProjectRepository(): ProjectRepository {
       )
 
       return hydrateProject(db, project)
+    },
+
+    async addProjectRole(projectId, role) {
+      const db = await getDatabase()
+      // hydrateProject needs both id and name to return a complete project payload after update.
+      const project = await db.query<DbProject>('SELECT id, name FROM projects WHERE id = $1', [projectId])
+      if (!project.rows[0]) {
+        return null
+      }
+
+      const normalizedRole = normalizeAndValidateTextField(role, 'Role')
+      const existingRole = await db.query<{ id: number }>(
+        'SELECT id FROM project_roles WHERE project_id = $1 AND value = $2 LIMIT 1',
+        [projectId, normalizedRole],
+      )
+
+      if (existingRole.rows.length === 0) {
+        await db.query('INSERT INTO project_roles (project_id, value) VALUES ($1, $2)', [projectId, normalizedRole])
+      }
+
+      return hydrateProject(db, project.rows[0])
+    },
+
+    async addProjectUseCase(projectId, useCase) {
+      const db = await getDatabase()
+      // hydrateProject needs both id and name to return a complete project payload after update.
+      const project = await db.query<DbProject>('SELECT id, name FROM projects WHERE id = $1', [projectId])
+      if (!project.rows[0]) {
+        return null
+      }
+
+      const normalizedUseCase = normalizeAndValidateTextField(useCase, 'Use case')
+      const existingUseCase = await db.query<{ id: number }>(
+        'SELECT id FROM project_use_cases WHERE project_id = $1 AND value = $2 LIMIT 1',
+        [projectId, normalizedUseCase],
+      )
+
+      if (existingUseCase.rows.length === 0) {
+        await db.query('INSERT INTO project_use_cases (project_id, value) VALUES ($1, $2)', [
+          projectId,
+          normalizedUseCase,
+        ])
+      }
+
+      return hydrateProject(db, project.rows[0])
     },
   }
 }

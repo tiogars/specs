@@ -7,6 +7,19 @@ class InMemoryProjectRepository implements ProjectRepository {
   private projects: Project[] = []
   private nextId = 1
 
+  private normalizeAndValidateTextField(value: string, fieldLabel: string) {
+    const normalizedValue = value.trim()
+    if (!normalizedValue) {
+      throw new Error(`${fieldLabel} is required`)
+    }
+
+    if (normalizedValue.length > 255) {
+      throw new Error(`${fieldLabel} exceeds maximum length of 255 characters`)
+    }
+
+    return normalizedValue
+  }
+
   async listProjects() {
     return this.projects
   }
@@ -25,6 +38,34 @@ class InMemoryProjectRepository implements ProjectRepository {
 
     this.projects = [project, ...this.projects]
     this.nextId += 1
+
+    return project
+  }
+
+  async addProjectRole(projectId: number, role: string) {
+    const project = this.projects.find((value) => value.id === projectId)
+    if (!project) {
+      return null
+    }
+
+    const normalizedRole = this.normalizeAndValidateTextField(role, 'Role')
+    if (!project.roles.includes(normalizedRole)) {
+      project.roles = [...project.roles, normalizedRole]
+    }
+
+    return project
+  }
+
+  async addProjectUseCase(projectId: number, useCase: string) {
+    const project = this.projects.find((value) => value.id === projectId)
+    if (!project) {
+      return null
+    }
+
+    const normalizedUseCase = this.normalizeAndValidateTextField(useCase, 'Use case')
+    if (!project.useCases.includes(normalizedUseCase)) {
+      project.useCases = [...project.useCases, normalizedUseCase]
+    }
 
     return project
   }
@@ -77,6 +118,22 @@ describe('App', () => {
       expect(screen.getByText('Use cases')).toBeInTheDocument()
       expect(screen.getByText('Create invoice')).toBeInTheDocument()
       expect(screen.getByText('Export report')).toBeInTheDocument()
+    })
+
+    fireEvent.change(screen.getByLabelText('New role'), { target: { value: 'Manager' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Add role' }))
+    fireEvent.change(screen.getByLabelText('New role'), { target: { value: ' Manager ' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Add role' }))
+    fireEvent.change(screen.getByLabelText('New use case'), { target: { value: 'Approve payment' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Add use case' }))
+    fireEvent.change(screen.getByLabelText('New use case'), { target: { value: ' Approve payment ' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Add use case' }))
+
+    await waitFor(() => {
+      expect(screen.getByText('Manager')).toBeInTheDocument()
+      expect(screen.getByText('Approve payment')).toBeInTheDocument()
+      expect(screen.getAllByText('Manager')).toHaveLength(1)
+      expect(screen.getAllByText('Approve payment')).toHaveLength(1)
     })
   })
 })

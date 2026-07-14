@@ -163,6 +163,9 @@ function ProjectDetailPage({ repository }: { repository: ProjectRepository }) {
   const { projectId } = useParams()
   const [loading, setLoading] = useState(true)
   const [project, setProject] = useState<Awaited<ReturnType<ProjectRepository['getProject']>>>(null)
+  const [newRole, setNewRole] = useState('')
+  const [newUseCase, setNewUseCase] = useState('')
+  const [saveError, setSaveError] = useState<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -207,6 +210,58 @@ function ProjectDetailPage({ repository }: { repository: ProjectRepository }) {
     )
   }
 
+  const handleAddRole = async () => {
+    if (!newRole.trim()) {
+      return
+    }
+
+    setSaveError(null)
+
+    try {
+      const updatedProject = await repository.addProjectRole(project.id, newRole)
+      if (!updatedProject) {
+        setSaveError('Project not found.')
+        return
+      }
+
+      setProject(updatedProject)
+      setNewRole('')
+    } catch (error) {
+      if (error instanceof Error && error.message) {
+        setSaveError(error.message)
+        return
+      }
+
+      setSaveError('Unable to update this project.')
+    }
+  }
+
+  const handleAddUseCase = async () => {
+    if (!newUseCase.trim()) {
+      return
+    }
+
+    setSaveError(null)
+
+    try {
+      const updatedProject = await repository.addProjectUseCase(project.id, newUseCase)
+      if (!updatedProject) {
+        setSaveError('Project not found.')
+        return
+      }
+
+      setProject(updatedProject)
+      setNewUseCase('')
+    } catch (error) {
+      if (error instanceof Error && error.message) {
+        setSaveError(error.message)
+        return
+      }
+
+      setSaveError('Unable to update this project.')
+    }
+  }
+
   return (
     <Stack spacing={3}>
       <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
@@ -216,6 +271,7 @@ function ProjectDetailPage({ repository }: { repository: ProjectRepository }) {
         </Link>
       </Stack>
       <Typography variant="h4">{project.name}</Typography>
+      {saveError ? <Alert severity="error">{saveError}</Alert> : null}
       <Card>
         <CardContent>
           <Typography variant="h6" gutterBottom>
@@ -231,6 +287,17 @@ function ProjectDetailPage({ repository }: { repository: ProjectRepository }) {
               </ListItem>
             ))}
           </List>
+          <Stack direction="row" spacing={1}>
+            <TextField
+              label="New role"
+              size="small"
+              value={newRole}
+              onChange={(event) => setNewRole(event.target.value)}
+            />
+            <Button variant="outlined" onClick={handleAddRole}>
+              Add role
+            </Button>
+          </Stack>
         </CardContent>
       </Card>
       <Card>
@@ -248,6 +315,17 @@ function ProjectDetailPage({ repository }: { repository: ProjectRepository }) {
               </ListItem>
             ))}
           </List>
+          <Stack direction="row" spacing={1}>
+            <TextField
+              label="New use case"
+              size="small"
+              value={newUseCase}
+              onChange={(event) => setNewUseCase(event.target.value)}
+            />
+            <Button variant="outlined" onClick={handleAddUseCase}>
+              Add use case
+            </Button>
+          </Stack>
         </CardContent>
       </Card>
     </Stack>
