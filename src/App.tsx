@@ -221,13 +221,18 @@ function ProjectDetailPage({ repository }: { repository: ProjectRepository }) {
     try {
       const updatedProject = await repository.addProjectRole(project.id, role)
       if (!updatedProject) {
-        setSaveError('Unable to update this project.')
+        setSaveError('Project not found.')
         return
       }
 
       setProject(updatedProject)
       setNewRole('')
-    } catch {
+    } catch (error) {
+      if (error instanceof Error && error.message) {
+        setSaveError(error.message)
+        return
+      }
+
       setSaveError('Unable to update this project.')
     }
   }
@@ -243,13 +248,18 @@ function ProjectDetailPage({ repository }: { repository: ProjectRepository }) {
     try {
       const updatedProject = await repository.addProjectUseCase(project.id, useCase)
       if (!updatedProject) {
-        setSaveError('Unable to update this project.')
+        setSaveError('Project not found.')
         return
       }
 
       setProject(updatedProject)
       setNewUseCase('')
-    } catch {
+    } catch (error) {
+      if (error instanceof Error && error.message) {
+        setSaveError(error.message)
+        return
+      }
+
       setSaveError('Unable to update this project.')
     }
   }
