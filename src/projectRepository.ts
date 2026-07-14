@@ -113,13 +113,17 @@ export function createPgliteProjectRepository(): ProjectRepository {
         throw new Error('Unable to create project')
       }
 
-      for (const role of input.roles) {
-        await db.query('INSERT INTO project_roles (project_id, value) VALUES ($1, $2)', [project.id, role])
-      }
+      await Promise.all(
+        input.roles.map((role) =>
+          db.query('INSERT INTO project_roles (project_id, value) VALUES ($1, $2)', [project.id, role]),
+        ),
+      )
 
-      for (const useCase of input.useCases) {
-        await db.query('INSERT INTO project_use_cases (project_id, value) VALUES ($1, $2)', [project.id, useCase])
-      }
+      await Promise.all(
+        input.useCases.map((useCase) =>
+          db.query('INSERT INTO project_use_cases (project_id, value) VALUES ($1, $2)', [project.id, useCase]),
+        ),
+      )
 
       return hydrateProject(db, project)
     },
