@@ -8,6 +8,12 @@ import {
   CardContent,
   Chip,
   Container,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  IconButton,
   Link,
   List,
   ListItem,
@@ -18,6 +24,8 @@ import {
   Typography,
 } from '@mui/material'
 import AddCircleIcon from '@mui/icons-material/AddCircle'
+import DeleteIcon from '@mui/icons-material/Delete'
+import EditIcon from '@mui/icons-material/Edit'
 import FolderIcon from '@mui/icons-material/Folder'
 import GroupsIcon from '@mui/icons-material/Groups'
 import AutoStoriesIcon from '@mui/icons-material/AutoStories'
@@ -159,6 +167,9 @@ const ProjectDetailPage = ({ repository }: ProjectDetailPageProps) => {
   const [project, setProject] = useState<Awaited<ReturnType<ProjectRepository['getProject']>>>(null)
   const [newRole, setNewRole] = useState('')
   const [newUseCase, setNewUseCase] = useState('')
+  const [editingUseCase, setEditingUseCase] = useState<string | null>(null)
+  const [editedUseCaseValue, setEditedUseCaseValue] = useState('')
+  const [useCasePendingDeletion, setUseCasePendingDeletion] = useState<string | null>(null)
   const [saveError, setSaveError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -256,6 +267,83 @@ const ProjectDetailPage = ({ repository }: ProjectDetailPageProps) => {
     }
   }
 
+  const handleStartEditUseCase = (useCase: string) => {
+    setSaveError(null)
+    setEditingUseCase(useCase)
+    setEditedUseCaseValue(useCase)
+  }
+
+  const handleCancelEditUseCase = () => {
+    setEditingUseCase(null)
+    setEditedUseCaseValue('')
+  }
+
+  const handleSaveEditedUseCase = async () => {
+    if (!editingUseCase) {
+      return
+    }
+
+    setSaveError(null)
+
+    try {
+      const updatedProject = await repository.updateProjectUseCase(project.id, editingUseCase, editedUseCaseValue)
+      if (!updatedProject) {
+        setSaveError('Project not found.')
+        return
+      }
+
+      setProject(updatedProject)
+      setEditingUseCase(null)
+      setEditedUseCaseValue('')
+    } catch (error) {
+      if (error instanceof Error && error.message) {
+        setSaveError(error.message)
+        return
+      }
+
+      setSaveError('Unable to update this project.')
+    }
+  }
+
+  const handleRequestDeleteUseCase = (useCase: string) => {
+    setSaveError(null)
+    setUseCasePendingDeletion(useCase)
+  }
+
+  const handleCancelDeleteUseCase = () => {
+    setUseCasePendingDeletion(null)
+  }
+
+  const handleConfirmDeleteUseCase = async () => {
+    if (!useCasePendingDeletion) {
+      return
+    }
+
+    setSaveError(null)
+
+    try {
+      const updatedProject = await repository.removeProjectUseCase(project.id, useCasePendingDeletion)
+      if (!updatedProject) {
+        setSaveError('Project not found.')
+        return
+      }
+
+      setProject(updatedProject)
+      if (editingUseCase === useCasePendingDeletion) {
+        setEditingUseCase(null)
+        setEditedUseCaseValue('')
+      }
+      setUseCasePendingDeletion(null)
+    } catch (error) {
+      if (error instanceof Error && error.message) {
+        setSaveError(error.message)
+        return
+      }
+
+      setSaveError('Unable to update this project.')
+    }
+  }
+
   return (
     <Stack spacing={3}>
       <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
@@ -301,7 +389,23 @@ const ProjectDetailPage = ({ repository }: ProjectDetailPageProps) => {
           </Typography>
           <List>
             {project.useCases.map((useCase) => (
-              <ListItem key={useCase} disableGutters>
+              <ListItem
+                key={useCase}
+                disableGutters
+                secondaryAction={
+                  <Stack direction="row" spacing={1}>
+                    <IconButton aria-label={`Edit use case: ${useCase}`} onClick={() => handleStartEditUseCase(useCase)}>
+                      <EditIcon />
+                    </IconButton>
+                    <IconButton
+                      aria-label={`Delete use case: ${useCase}`}
+                      onClick={() => handleRequestDeleteUseCase(useCase)}
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </Stack>
+                }
+              >
                 <ListItemIcon>
                   <AutoStoriesIcon />
                 </ListItemIcon>
@@ -309,6 +413,28 @@ const ProjectDetailPage = ({ repository }: ProjectDetailPageProps) => {
               </ListItem>
             ))}
           </List>
+          {editingUseCase ? (
+            <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
+              <TextField
+                label="Edit use case"
+                size="small"
+                value={editedUseCaseValue}
+                onChange={(event) => setEditedUseCaseValue(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') {
+                    event.preventDefault()
+                    void handleSaveEditedUseCase()
+                  }
+                }}
+              />
+              <Button variant="outlined" onClick={handleSaveEditedUseCase}>
+                Save
+              </Button>
+              <Button variant="text" onClick={handleCancelEditUseCase}>
+                Cancel
+              </Button>
+            </Stack>
+          ) : null}
           <Stack direction="row" spacing={1}>
             <TextField
               label="New use case"
@@ -320,6 +446,20 @@ const ProjectDetailPage = ({ repository }: ProjectDetailPageProps) => {
               Add use case
             </Button>
           </Stack>
+          <Dialog open={Boolean(useCasePendingDeletion)} onClose={handleCancelDeleteUseCase}>
+            <DialogTitle>Delete use case</DialogTitle>
+            <DialogContent>
+              <DialogContentText>
+                {`Are you sure you want to delete "${useCasePendingDeletion}" from this project?`}
+              </DialogContentText>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleCancelDeleteUseCase}>Cancel</Button>
+              <Button color="error" onClick={handleConfirmDeleteUseCase} variant="contained">
+                Confirm delete use case
+              </Button>
+            </DialogActions>
+          </Dialog>
         </CardContent>
       </Card>
     </Stack>

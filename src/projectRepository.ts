@@ -19,6 +19,8 @@ export type ProjectRepository = {
   createProject: (input: CreateProjectInput) => Promise<Project>
   addProjectRole: (projectId: number, role: string) => Promise<Project | null>
   addProjectUseCase: (projectId: number, useCase: string) => Promise<Project | null>
+  updateProjectUseCase: (projectId: number, currentUseCase: string, nextUseCase: string) => Promise<Project | null>
+  removeProjectUseCase: (projectId: number, useCase: string) => Promise<Project | null>
 }
 
 type DbProject = {
@@ -183,6 +185,63 @@ export function createPgliteProjectRepository(): ProjectRepository {
           projectId,
           normalizedUseCase,
         ])
+      }
+
+      return hydrateProject(db, project.rows[0])
+    },
+
+    async updateProjectUseCase(projectId, currentUseCase, nextUseCase) {
+      const db = await getDatabase()
+      const project = await db.query<DbProject>('SELECT id, name FROM projects WHERE id = $1', [projectId])
+      if (!project.rows[0]) {
+        return null
+      }
+
+      const normalizedCurrentUseCase = normalizeAndValidateTextField(currentUseCase, 'Use case')
+      const normalizedNextUseCase = normalizeAndValidateTextField(nextUseCase, 'Use case')
+
+      const currentUseCaseResult = await db.query<{ id: number }>(
+        'SELECT id FROM project_use_cases WHERE project_id = $1 AND value = $2 LIMIT 1',
+        [projectId, normalizedCurrentUseCase],
+      )
+      const currentUseCaseRecord = currentUseCaseResult.rows[0]
+      if (!currentUseCaseRecord) {
+        throw new Error('Use case not found')
+      }
+
+      if (normalizedCurrentUseCase !== normalizedNextUseCase) {
+        const duplicateUseCase = await db.query<{ id: number }>(
+          'SELECT id FROM project_use_cases WHERE project_id = $1 AND value = $2 LIMIT 1',
+          [projectId, normalizedNextUseCase],
+        )
+        if (duplicateUseCase.rows.length > 0) {
+          throw new Error('Use case already exists')
+        }
+      }
+
+      await db.query('UPDATE project_use_cases SET value = $1 WHERE id = $2', [
+        normalizedNextUseCase,
+        currentUseCaseRecord.id,
+      ])
+
+      return hydrateProject(db, project.rows[0])
+    },
+
+    async removeProjectUseCase(projectId, useCase) {
+      const db = await getDatabase()
+      const project = await db.query<DbProject>('SELECT id, name FROM projects WHERE id = $1', [projectId])
+      if (!project.rows[0]) {
+        return null
+      }
+
+      const normalizedUseCase = normalizeAndValidateTextField(useCase, 'Use case')
+      const deleteResult = await db.query<{ id: number }>(
+        'DELETE FROM project_use_cases WHERE project_id = $1 AND value = $2 RETURNING id',
+        [projectId, normalizedUseCase],
+      )
+
+      if (deleteResult.rows.length === 0) {
+        throw new Error('Use case not found')
       }
 
       return hydrateProject(db, project.rows[0])
