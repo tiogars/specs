@@ -8,6 +8,7 @@ import {
   CardContent,
   Chip,
   Container,
+  IconButton,
   Link,
   List,
   ListItem,
@@ -18,6 +19,8 @@ import {
   Typography,
 } from '@mui/material'
 import AddCircleIcon from '@mui/icons-material/AddCircle'
+import DeleteIcon from '@mui/icons-material/Delete'
+import EditIcon from '@mui/icons-material/Edit'
 import FolderIcon from '@mui/icons-material/Folder'
 import GroupsIcon from '@mui/icons-material/Groups'
 import AutoStoriesIcon from '@mui/icons-material/AutoStories'
@@ -159,6 +162,8 @@ const ProjectDetailPage = ({ repository }: ProjectDetailPageProps) => {
   const [project, setProject] = useState<Awaited<ReturnType<ProjectRepository['getProject']>>>(null)
   const [newRole, setNewRole] = useState('')
   const [newUseCase, setNewUseCase] = useState('')
+  const [editingUseCase, setEditingUseCase] = useState<string | null>(null)
+  const [editedUseCaseValue, setEditedUseCaseValue] = useState('')
   const [saveError, setSaveError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -256,6 +261,69 @@ const ProjectDetailPage = ({ repository }: ProjectDetailPageProps) => {
     }
   }
 
+  const handleStartEditUseCase = (useCase: string) => {
+    setSaveError(null)
+    setEditingUseCase(useCase)
+    setEditedUseCaseValue(useCase)
+  }
+
+  const handleCancelEditUseCase = () => {
+    setEditingUseCase(null)
+    setEditedUseCaseValue('')
+  }
+
+  const handleSaveEditedUseCase = async () => {
+    if (!editingUseCase) {
+      return
+    }
+
+    setSaveError(null)
+
+    try {
+      const updatedProject = await repository.updateProjectUseCase(project.id, editingUseCase, editedUseCaseValue)
+      if (!updatedProject) {
+        setSaveError('Project not found.')
+        return
+      }
+
+      setProject(updatedProject)
+      setEditingUseCase(null)
+      setEditedUseCaseValue('')
+    } catch (error) {
+      if (error instanceof Error && error.message) {
+        setSaveError(error.message)
+        return
+      }
+
+      setSaveError('Unable to update this project.')
+    }
+  }
+
+  const handleDeleteUseCase = async (useCase: string) => {
+    setSaveError(null)
+
+    try {
+      const updatedProject = await repository.removeProjectUseCase(project.id, useCase)
+      if (!updatedProject) {
+        setSaveError('Project not found.')
+        return
+      }
+
+      setProject(updatedProject)
+      if (editingUseCase === useCase) {
+        setEditingUseCase(null)
+        setEditedUseCaseValue('')
+      }
+    } catch (error) {
+      if (error instanceof Error && error.message) {
+        setSaveError(error.message)
+        return
+      }
+
+      setSaveError('Unable to update this project.')
+    }
+  }
+
   return (
     <Stack spacing={3}>
       <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
@@ -301,7 +369,20 @@ const ProjectDetailPage = ({ repository }: ProjectDetailPageProps) => {
           </Typography>
           <List>
             {project.useCases.map((useCase) => (
-              <ListItem key={useCase} disableGutters>
+              <ListItem
+                key={useCase}
+                disableGutters
+                secondaryAction={
+                  <Stack direction="row" spacing={1}>
+                    <IconButton aria-label={`Edit use case ${useCase}`} onClick={() => handleStartEditUseCase(useCase)}>
+                      <EditIcon />
+                    </IconButton>
+                    <IconButton aria-label={`Delete use case ${useCase}`} onClick={() => handleDeleteUseCase(useCase)}>
+                      <DeleteIcon />
+                    </IconButton>
+                  </Stack>
+                }
+              >
                 <ListItemIcon>
                   <AutoStoriesIcon />
                 </ListItemIcon>
@@ -309,6 +390,22 @@ const ProjectDetailPage = ({ repository }: ProjectDetailPageProps) => {
               </ListItem>
             ))}
           </List>
+          {editingUseCase ? (
+            <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
+              <TextField
+                label="Edit use case"
+                size="small"
+                value={editedUseCaseValue}
+                onChange={(event) => setEditedUseCaseValue(event.target.value)}
+              />
+              <Button variant="outlined" onClick={handleSaveEditedUseCase}>
+                Save
+              </Button>
+              <Button variant="text" onClick={handleCancelEditUseCase}>
+                Cancel
+              </Button>
+            </Stack>
+          ) : null}
           <Stack direction="row" spacing={1}>
             <TextField
               label="New use case"

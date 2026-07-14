@@ -49,11 +49,15 @@ class InMemoryProjectRepository implements ProjectRepository {
     }
 
     const normalizedRole = this.normalizeAndValidateTextField(role, 'Role')
-    if (!project.roles.includes(normalizedRole)) {
-      project.roles = [...project.roles, normalizedRole]
+    const updatedProject = project.roles.includes(normalizedRole)
+      ? project
+      : { ...project, roles: [...project.roles, normalizedRole] }
+
+    if (updatedProject !== project) {
+      this.projects = this.projects.map((value) => (value.id === projectId ? updatedProject : value))
     }
 
-    return project
+    return updatedProject
   }
 
   async addProjectUseCase(projectId: number, useCase: string) {
@@ -63,11 +67,61 @@ class InMemoryProjectRepository implements ProjectRepository {
     }
 
     const normalizedUseCase = this.normalizeAndValidateTextField(useCase, 'Use case')
-    if (!project.useCases.includes(normalizedUseCase)) {
-      project.useCases = [...project.useCases, normalizedUseCase]
+    const updatedProject = project.useCases.includes(normalizedUseCase)
+      ? project
+      : { ...project, useCases: [...project.useCases, normalizedUseCase] }
+
+    if (updatedProject !== project) {
+      this.projects = this.projects.map((value) => (value.id === projectId ? updatedProject : value))
     }
 
-    return project
+    return updatedProject
+  }
+
+  async updateProjectUseCase(projectId: number, currentUseCase: string, nextUseCase: string) {
+    const project = this.projects.find((value) => value.id === projectId)
+    if (!project) {
+      return null
+    }
+
+    const normalizedCurrentUseCase = this.normalizeAndValidateTextField(currentUseCase, 'Use case')
+    const normalizedNextUseCase = this.normalizeAndValidateTextField(nextUseCase, 'Use case')
+    const currentIndex = project.useCases.findIndex((value) => value === normalizedCurrentUseCase)
+    if (currentIndex < 0) {
+      throw new Error('Use case not found')
+    }
+
+    if (
+      normalizedCurrentUseCase !== normalizedNextUseCase &&
+      project.useCases.some((value) => value === normalizedNextUseCase)
+    ) {
+      throw new Error('Use case already exists')
+    }
+
+    const updatedUseCases = [...project.useCases]
+    updatedUseCases[currentIndex] = normalizedNextUseCase
+    const updatedProject = { ...project, useCases: updatedUseCases }
+    this.projects = this.projects.map((value) => (value.id === projectId ? updatedProject : value))
+    return updatedProject
+  }
+
+  async removeProjectUseCase(projectId: number, useCase: string) {
+    const project = this.projects.find((value) => value.id === projectId)
+    if (!project) {
+      return null
+    }
+
+    const normalizedUseCase = this.normalizeAndValidateTextField(useCase, 'Use case')
+    if (!project.useCases.includes(normalizedUseCase)) {
+      throw new Error('Use case not found')
+    }
+
+    const updatedProject = {
+      ...project,
+      useCases: project.useCases.filter((value) => value !== normalizedUseCase),
+    }
+    this.projects = this.projects.map((value) => (value.id === projectId ? updatedProject : value))
+    return updatedProject
   }
 }
 
@@ -134,6 +188,21 @@ describe('App', () => {
       expect(screen.getByText('Approve payment')).toBeInTheDocument()
       expect(screen.getAllByText('Manager')).toHaveLength(1)
       expect(screen.getAllByText('Approve payment')).toHaveLength(1)
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Edit use case Approve payment' }))
+    fireEvent.change(screen.getByLabelText('Edit use case'), { target: { value: 'Approve refund' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+
+    await waitFor(() => {
+      expect(screen.getByText('Approve refund')).toBeInTheDocument()
+      expect(screen.queryByText('Approve payment')).not.toBeInTheDocument()
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Delete use case Approve refund' }))
+
+    await waitFor(() => {
+      expect(screen.queryByText('Approve refund')).not.toBeInTheDocument()
     })
   })
 })
