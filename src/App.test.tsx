@@ -28,6 +28,26 @@ class InMemoryProjectRepository implements ProjectRepository {
 
     return project
   }
+
+  async addProjectRole(projectId: number, role: string) {
+    const project = this.projects.find((value) => value.id === projectId)
+    if (!project) {
+      return null
+    }
+
+    project.roles = [...project.roles, role]
+    return project
+  }
+
+  async addProjectUseCase(projectId: number, useCase: string) {
+    const project = this.projects.find((value) => value.id === projectId)
+    if (!project) {
+      return null
+    }
+
+    project.useCases = [...project.useCases, useCase]
+    return project
+  }
 }
 
 describe('App', () => {
@@ -77,6 +97,16 @@ describe('App', () => {
       expect(screen.getByText('Use cases')).toBeInTheDocument()
       expect(screen.getByText('Create invoice')).toBeInTheDocument()
       expect(screen.getByText('Export report')).toBeInTheDocument()
+    })
+
+    fireEvent.change(screen.getByLabelText('New role'), { target: { value: 'Manager' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Add role' }))
+    fireEvent.change(screen.getByLabelText('New use case'), { target: { value: 'Approve payment' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Add use case' }))
+
+    await waitFor(() => {
+      expect(screen.getByText('Manager')).toBeInTheDocument()
+      expect(screen.getByText('Approve payment')).toBeInTheDocument()
     })
   })
 })

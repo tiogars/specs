@@ -17,6 +17,8 @@ export type ProjectRepository = {
   listProjects: () => Promise<Project[]>
   getProject: (projectId: number) => Promise<Project | null>
   createProject: (input: CreateProjectInput) => Promise<Project>
+  addProjectRole: (projectId: number, role: string) => Promise<Project | null>
+  addProjectUseCase: (projectId: number, useCase: string) => Promise<Project | null>
 }
 
 type DbProject = {
@@ -126,6 +128,28 @@ export function createPgliteProjectRepository(): ProjectRepository {
       )
 
       return hydrateProject(db, project)
+    },
+
+    async addProjectRole(projectId, role) {
+      const db = await getDatabase()
+      const project = await db.query<DbProject>('SELECT id, name FROM projects WHERE id = $1', [projectId])
+      if (!project.rows[0]) {
+        return null
+      }
+
+      await db.query('INSERT INTO project_roles (project_id, value) VALUES ($1, $2)', [projectId, role])
+      return hydrateProject(db, project.rows[0])
+    },
+
+    async addProjectUseCase(projectId, useCase) {
+      const db = await getDatabase()
+      const project = await db.query<DbProject>('SELECT id, name FROM projects WHERE id = $1', [projectId])
+      if (!project.rows[0]) {
+        return null
+      }
+
+      await db.query('INSERT INTO project_use_cases (project_id, value) VALUES ($1, $2)', [projectId, useCase])
+      return hydrateProject(db, project.rows[0])
     },
   }
 }
