@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import App from './App'
 import type { CreateProjectInput, Project, ProjectRepository } from './projectRepository'
@@ -190,8 +190,13 @@ describe('App', () => {
       expect(screen.getAllByText('Approve payment')).toHaveLength(1)
     })
 
-    fireEvent.click(screen.getByRole('button', { name: 'Edit use case Approve payment' }))
-    fireEvent.change(screen.getByLabelText('Edit use case'), { target: { value: 'Approve refund' } })
+    const approvePaymentListItem = screen.getByText('Approve payment').closest('li')
+    if (!approvePaymentListItem) {
+      throw new Error('Approve payment list item not found')
+    }
+
+    fireEvent.click(within(approvePaymentListItem).getByRole('button', { name: 'Edit use case: Approve payment' }))
+    fireEvent.change(screen.getByRole('textbox', { name: 'Edit use case' }), { target: { value: 'Approve refund' } })
     fireEvent.click(screen.getByRole('button', { name: 'Save' }))
 
     await waitFor(() => {
@@ -199,7 +204,13 @@ describe('App', () => {
       expect(screen.queryByText('Approve payment')).not.toBeInTheDocument()
     })
 
-    fireEvent.click(screen.getByRole('button', { name: 'Delete use case Approve refund' }))
+    const approveRefundListItem = screen.getByText('Approve refund').closest('li')
+    if (!approveRefundListItem) {
+      throw new Error('Approve refund list item not found')
+    }
+
+    fireEvent.click(within(approveRefundListItem).getByRole('button', { name: 'Delete use case: Approve refund' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Confirm delete use case' }))
 
     await waitFor(() => {
       expect(screen.queryByText('Approve refund')).not.toBeInTheDocument()

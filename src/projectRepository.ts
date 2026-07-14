@@ -219,10 +219,9 @@ export function createPgliteProjectRepository(): ProjectRepository {
         }
       }
 
-      await db.query('UPDATE project_use_cases SET value = $1 WHERE id = $2 AND project_id = $3', [
+      await db.query('UPDATE project_use_cases SET value = $1 WHERE id = $2', [
         normalizedNextUseCase,
         currentUseCaseRecord.id,
-        projectId,
       ])
 
       return hydrateProject(db, project.rows[0])

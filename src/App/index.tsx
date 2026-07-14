@@ -8,6 +8,11 @@ import {
   CardContent,
   Chip,
   Container,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
   IconButton,
   Link,
   List,
@@ -164,6 +169,7 @@ const ProjectDetailPage = ({ repository }: ProjectDetailPageProps) => {
   const [newUseCase, setNewUseCase] = useState('')
   const [editingUseCase, setEditingUseCase] = useState<string | null>(null)
   const [editedUseCaseValue, setEditedUseCaseValue] = useState('')
+  const [useCasePendingDeletion, setUseCasePendingDeletion] = useState<string | null>(null)
   const [saveError, setSaveError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -299,21 +305,35 @@ const ProjectDetailPage = ({ repository }: ProjectDetailPageProps) => {
     }
   }
 
-  const handleDeleteUseCase = async (useCase: string) => {
+  const handleRequestDeleteUseCase = (useCase: string) => {
+    setSaveError(null)
+    setUseCasePendingDeletion(useCase)
+  }
+
+  const handleCancelDeleteUseCase = () => {
+    setUseCasePendingDeletion(null)
+  }
+
+  const handleConfirmDeleteUseCase = async () => {
+    if (!useCasePendingDeletion) {
+      return
+    }
+
     setSaveError(null)
 
     try {
-      const updatedProject = await repository.removeProjectUseCase(project.id, useCase)
+      const updatedProject = await repository.removeProjectUseCase(project.id, useCasePendingDeletion)
       if (!updatedProject) {
         setSaveError('Project not found.')
         return
       }
 
       setProject(updatedProject)
-      if (editingUseCase === useCase) {
+      if (editingUseCase === useCasePendingDeletion) {
         setEditingUseCase(null)
         setEditedUseCaseValue('')
       }
+      setUseCasePendingDeletion(null)
     } catch (error) {
       if (error instanceof Error && error.message) {
         setSaveError(error.message)
@@ -374,10 +394,13 @@ const ProjectDetailPage = ({ repository }: ProjectDetailPageProps) => {
                 disableGutters
                 secondaryAction={
                   <Stack direction="row" spacing={1}>
-                    <IconButton aria-label={`Edit use case ${useCase}`} onClick={() => handleStartEditUseCase(useCase)}>
+                    <IconButton aria-label={`Edit use case: ${useCase}`} onClick={() => handleStartEditUseCase(useCase)}>
                       <EditIcon />
                     </IconButton>
-                    <IconButton aria-label={`Delete use case ${useCase}`} onClick={() => handleDeleteUseCase(useCase)}>
+                    <IconButton
+                      aria-label={`Delete use case: ${useCase}`}
+                      onClick={() => handleRequestDeleteUseCase(useCase)}
+                    >
                       <DeleteIcon />
                     </IconButton>
                   </Stack>
@@ -397,6 +420,12 @@ const ProjectDetailPage = ({ repository }: ProjectDetailPageProps) => {
                 size="small"
                 value={editedUseCaseValue}
                 onChange={(event) => setEditedUseCaseValue(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') {
+                    event.preventDefault()
+                    void handleSaveEditedUseCase()
+                  }
+                }}
               />
               <Button variant="outlined" onClick={handleSaveEditedUseCase}>
                 Save
@@ -417,6 +446,20 @@ const ProjectDetailPage = ({ repository }: ProjectDetailPageProps) => {
               Add use case
             </Button>
           </Stack>
+          <Dialog open={Boolean(useCasePendingDeletion)} onClose={handleCancelDeleteUseCase}>
+            <DialogTitle>Delete use case</DialogTitle>
+            <DialogContent>
+              <DialogContentText>
+                {`Are you sure you want to delete "${useCasePendingDeletion}" from this project?`}
+              </DialogContentText>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleCancelDeleteUseCase}>Cancel</Button>
+              <Button color="error" onClick={handleConfirmDeleteUseCase} variant="contained">
+                Confirm delete use case
+              </Button>
+            </DialogActions>
+          </Dialog>
         </CardContent>
       </Card>
     </Stack>
