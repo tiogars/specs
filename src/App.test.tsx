@@ -32,6 +32,7 @@ class InMemoryProjectRepository implements ProjectRepository {
     const project: Project = {
       id: this.nextId,
       name: input.name,
+      isDefault: false,
       roles: input.roles,
       useCases: input.useCases,
     }
