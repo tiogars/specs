@@ -34,7 +34,7 @@ import AutoStoriesIcon from '@mui/icons-material/AutoStories'
 import HomeIcon from '@mui/icons-material/Home'
 import { createPgliteProjectRepository, type ProjectRepository } from '../projectRepository'
 import { parseLines } from '../parseLines'
-import { generateProjectDocZip } from '../generateProjectDocZip'
+import { generateProjectDocZip, toSlug } from '../generateProjectDocZip'
 import Header from '../components/Header'
 import type { AppProps, ProjectDetailPageProps, ProjectFormValues, ProjectsPageProps } from './App.types'
 
@@ -448,7 +448,7 @@ const ProjectDetailPage = ({ repository }: ProjectDetailPageProps) => {
       const url = URL.createObjectURL(blob)
       const anchor = document.createElement('a')
       anchor.href = url
-      anchor.download = `${project.name}.zip`
+      anchor.download = `${toSlug(project.name) || 'project'}.zip`
       anchor.click()
       URL.revokeObjectURL(url)
     } finally {
