@@ -167,6 +167,9 @@ const ProjectDetailPage = ({ repository }: ProjectDetailPageProps) => {
   const [project, setProject] = useState<Awaited<ReturnType<ProjectRepository['getProject']>>>(null)
   const [newRole, setNewRole] = useState('')
   const [newUseCase, setNewUseCase] = useState('')
+  const [editingRole, setEditingRole] = useState<string | null>(null)
+  const [editedRoleValue, setEditedRoleValue] = useState('')
+  const [rolePendingDeletion, setRolePendingDeletion] = useState<string | null>(null)
   const [editingUseCase, setEditingUseCase] = useState<string | null>(null)
   const [editedUseCaseValue, setEditedUseCaseValue] = useState('')
   const [useCasePendingDeletion, setUseCasePendingDeletion] = useState<string | null>(null)
@@ -231,6 +234,83 @@ const ProjectDetailPage = ({ repository }: ProjectDetailPageProps) => {
 
       setProject(updatedProject)
       setNewRole('')
+    } catch (error) {
+      if (error instanceof Error && error.message) {
+        setSaveError(error.message)
+        return
+      }
+
+      setSaveError('Unable to update this project.')
+    }
+  }
+
+  const handleStartEditRole = (role: string) => {
+    setSaveError(null)
+    setEditingRole(role)
+    setEditedRoleValue(role)
+  }
+
+  const handleCancelEditRole = () => {
+    setEditingRole(null)
+    setEditedRoleValue('')
+  }
+
+  const handleSaveEditedRole = async () => {
+    if (!editingRole) {
+      return
+    }
+
+    setSaveError(null)
+
+    try {
+      const updatedProject = await repository.updateProjectRole(project.id, editingRole, editedRoleValue)
+      if (!updatedProject) {
+        setSaveError('Project not found.')
+        return
+      }
+
+      setProject(updatedProject)
+      setEditingRole(null)
+      setEditedRoleValue('')
+    } catch (error) {
+      if (error instanceof Error && error.message) {
+        setSaveError(error.message)
+        return
+      }
+
+      setSaveError('Unable to update this project.')
+    }
+  }
+
+  const handleRequestDeleteRole = (role: string) => {
+    setSaveError(null)
+    setRolePendingDeletion(role)
+  }
+
+  const handleCancelDeleteRole = () => {
+    setRolePendingDeletion(null)
+  }
+
+  const handleConfirmDeleteRole = async () => {
+    if (!rolePendingDeletion) {
+      return
+    }
+
+    setSaveError(null)
+
+    try {
+      const updatedProject = await repository.removeProjectRole(project.id, rolePendingDeletion)
+      if (!updatedProject) {
+        setSaveError('Project not found.')
+        return
+      }
+
+      setProject(updatedProject)
+      if (editingRole === rolePendingDeletion) {
+        setEditingRole(null)
+        setEditedRoleValue('')
+      }
+      setRolePendingDeletion(null)
     } catch (error) {
       if (error instanceof Error && error.message) {
         setSaveError(error.message)
@@ -361,7 +441,20 @@ const ProjectDetailPage = ({ repository }: ProjectDetailPageProps) => {
           </Typography>
           <List>
             {project.roles.map((role) => (
-              <ListItem key={role} disableGutters>
+              <ListItem
+                key={role}
+                disableGutters
+                secondaryAction={
+                  <Stack direction="row" spacing={1}>
+                    <IconButton aria-label={`Edit role: ${role}`} onClick={() => handleStartEditRole(role)}>
+                      <EditIcon />
+                    </IconButton>
+                    <IconButton aria-label={`Delete role: ${role}`} onClick={() => handleRequestDeleteRole(role)}>
+                      <DeleteIcon />
+                    </IconButton>
+                  </Stack>
+                }
+              >
                 <ListItemIcon>
                   <GroupsIcon />
                 </ListItemIcon>
@@ -369,6 +462,28 @@ const ProjectDetailPage = ({ repository }: ProjectDetailPageProps) => {
               </ListItem>
             ))}
           </List>
+          {editingRole ? (
+            <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
+              <TextField
+                label="Edit role"
+                size="small"
+                value={editedRoleValue}
+                onChange={(event) => setEditedRoleValue(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') {
+                    event.preventDefault()
+                    void handleSaveEditedRole()
+                  }
+                }}
+              />
+              <Button variant="outlined" onClick={handleSaveEditedRole}>
+                Save
+              </Button>
+              <Button variant="text" onClick={handleCancelEditRole}>
+                Cancel
+              </Button>
+            </Stack>
+          ) : null}
           <Stack direction="row" spacing={1}>
             <TextField
               label="New role"
@@ -380,6 +495,20 @@ const ProjectDetailPage = ({ repository }: ProjectDetailPageProps) => {
               Add role
             </Button>
           </Stack>
+          <Dialog open={Boolean(rolePendingDeletion)} onClose={handleCancelDeleteRole}>
+            <DialogTitle>Delete role</DialogTitle>
+            <DialogContent>
+              <DialogContentText>
+                {`Are you sure you want to delete "${rolePendingDeletion}" from this project?`}
+              </DialogContentText>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleCancelDeleteRole}>Cancel</Button>
+              <Button color="error" onClick={handleConfirmDeleteRole} variant="contained">
+                Confirm delete role
+              </Button>
+            </DialogActions>
+          </Dialog>
         </CardContent>
       </Card>
       <Card>

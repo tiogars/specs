@@ -18,6 +18,8 @@ export type ProjectRepository = {
   getProject: (projectId: number) => Promise<Project | null>
   createProject: (input: CreateProjectInput) => Promise<Project>
   addProjectRole: (projectId: number, role: string) => Promise<Project | null>
+  updateProjectRole: (projectId: number, currentRole: string, nextRole: string) => Promise<Project | null>
+  removeProjectRole: (projectId: number, role: string) => Promise<Project | null>
   addProjectUseCase: (projectId: number, useCase: string) => Promise<Project | null>
   updateProjectUseCase: (projectId: number, currentUseCase: string, nextUseCase: string) => Promise<Project | null>
   removeProjectUseCase: (projectId: number, useCase: string) => Promise<Project | null>
@@ -161,6 +163,60 @@ export function createPgliteProjectRepository(): ProjectRepository {
 
       if (existingRole.rows.length === 0) {
         await db.query('INSERT INTO project_roles (project_id, value) VALUES ($1, $2)', [projectId, normalizedRole])
+      }
+
+      return hydrateProject(db, project.rows[0])
+    },
+
+    async updateProjectRole(projectId, currentRole, nextRole) {
+      const db = await getDatabase()
+      const project = await db.query<DbProject>('SELECT id, name FROM projects WHERE id = $1', [projectId])
+      if (!project.rows[0]) {
+        return null
+      }
+
+      const normalizedCurrentRole = normalizeAndValidateTextField(currentRole, 'Role')
+      const normalizedNextRole = normalizeAndValidateTextField(nextRole, 'Role')
+
+      const currentRoleResult = await db.query<{ id: number }>(
+        'SELECT id FROM project_roles WHERE project_id = $1 AND value = $2 LIMIT 1',
+        [projectId, normalizedCurrentRole],
+      )
+      const currentRoleRecord = currentRoleResult.rows[0]
+      if (!currentRoleRecord) {
+        throw new Error('Role not found')
+      }
+
+      if (normalizedCurrentRole !== normalizedNextRole) {
+        const duplicateRole = await db.query<{ id: number }>(
+          'SELECT id FROM project_roles WHERE project_id = $1 AND value = $2 LIMIT 1',
+          [projectId, normalizedNextRole],
+        )
+        if (duplicateRole.rows.length > 0) {
+          throw new Error('Role already exists')
+        }
+      }
+
+      await db.query('UPDATE project_roles SET value = $1 WHERE id = $2', [normalizedNextRole, currentRoleRecord.id])
+
+      return hydrateProject(db, project.rows[0])
+    },
+
+    async removeProjectRole(projectId, role) {
+      const db = await getDatabase()
+      const project = await db.query<DbProject>('SELECT id, name FROM projects WHERE id = $1', [projectId])
+      if (!project.rows[0]) {
+        return null
+      }
+
+      const normalizedRole = normalizeAndValidateTextField(role, 'Role')
+      const deleteResult = await db.query<{ id: number }>(
+        'DELETE FROM project_roles WHERE project_id = $1 AND value = $2 RETURNING id',
+        [projectId, normalizedRole],
+      )
+
+      if (deleteResult.rows.length === 0) {
+        throw new Error('Role not found')
       }
 
       return hydrateProject(db, project.rows[0])
