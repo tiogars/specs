@@ -26,6 +26,7 @@ import {
 } from '@mui/material'
 import AddCircleIcon from '@mui/icons-material/AddCircle'
 import DeleteIcon from '@mui/icons-material/Delete'
+import DownloadIcon from '@mui/icons-material/Download'
 import EditIcon from '@mui/icons-material/Edit'
 import FolderIcon from '@mui/icons-material/Folder'
 import GroupsIcon from '@mui/icons-material/Groups'
@@ -33,6 +34,7 @@ import AutoStoriesIcon from '@mui/icons-material/AutoStories'
 import HomeIcon from '@mui/icons-material/Home'
 import { createPgliteProjectRepository, type ProjectRepository } from '../projectRepository'
 import { parseLines } from '../parseLines'
+import { generateProjectDocZip, toSlug } from '../generateProjectDocZip'
 import Header from '../components/Header'
 import type { AppProps, ProjectDetailPageProps, ProjectFormValues, ProjectsPageProps } from './App.types'
 
@@ -182,6 +184,7 @@ const ProjectDetailPage = ({ repository }: ProjectDetailPageProps) => {
   const [editedUseCaseValue, setEditedUseCaseValue] = useState('')
   const [useCasePendingDeletion, setUseCasePendingDeletion] = useState<string | null>(null)
   const [saveError, setSaveError] = useState<string | null>(null)
+  const [isDownloading, setIsDownloading] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -432,6 +435,27 @@ const ProjectDetailPage = ({ repository }: ProjectDetailPageProps) => {
     }
   }
 
+  const handleDownloadDocs = async () => {
+    if (!project) {
+      return
+    }
+
+    setIsDownloading(true)
+
+    try {
+      const zipBuffer = await generateProjectDocZip(project)
+      const blob = new Blob([zipBuffer], { type: 'application/zip' })
+      const url = URL.createObjectURL(blob)
+      const anchor = document.createElement('a')
+      anchor.href = url
+      anchor.download = `${toSlug(project.name) || 'project'}.zip`
+      anchor.click()
+      URL.revokeObjectURL(url)
+    } finally {
+      setIsDownloading(false)
+    }
+  }
+
   return (
     <Stack spacing={3}>
       <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
@@ -440,7 +464,21 @@ const ProjectDetailPage = ({ repository }: ProjectDetailPageProps) => {
           Back to projects
         </Link>
       </Stack>
-      <Typography variant="h4">{project.name}</Typography>
+      <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+        <Typography variant="h4" sx={{ flexGrow: 1 }}>{project.name}</Typography>
+        <Tooltip title="Download documentation as ZIP">
+          <span>
+            <Button
+              disabled={isDownloading}
+              onClick={handleDownloadDocs}
+              startIcon={<DownloadIcon />}
+              variant="outlined"
+            >
+              Download docs
+            </Button>
+          </span>
+        </Tooltip>
+      </Stack>
       {saveError ? <Alert severity="error">{saveError}</Alert> : null}
       <Card>
         <CardContent>
