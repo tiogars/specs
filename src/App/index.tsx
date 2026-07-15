@@ -21,6 +21,7 @@ import {
   ListItemText,
   Stack,
   TextField,
+  Tooltip,
   Typography,
 } from '@mui/material'
 import AddCircleIcon from '@mui/icons-material/AddCircle'
@@ -151,7 +152,14 @@ const ProjectsPage = ({ repository }: ProjectsPageProps) => {
                 <Typography component={RouterLink} to={`/projects/${project.id}`} sx={{ textDecoration: 'none' }} variant="h6">
                   {project.name}
                 </Typography>
-                <Chip color="primary" icon={<FolderIcon />} label={`${project.roles.length} roles`} />
+                <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+                  {project.isDefault ? (
+                    <Tooltip title="This project describes the webapp itself and is reset on each deploy">
+                      <Chip color="secondary" label="Default" size="small" />
+                    </Tooltip>
+                  ) : null}
+                  <Chip color="primary" icon={<FolderIcon />} label={`${project.roles.length} roles`} />
+                </Stack>
               </Stack>
             </CardContent>
           </Card>

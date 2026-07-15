@@ -3,6 +3,7 @@ import { PGlite } from '@electric-sql/pglite'
 export type Project = {
   id: number
   name: string
+  isDefault: boolean
   roles: string[]
   useCases: string[]
 }
@@ -28,10 +29,87 @@ export type ProjectRepository = {
 type DbProject = {
   id: number
   name: string
+  is_default: boolean
 }
 
 type DbValue = {
   value: string
+}
+
+const DEFAULT_PROJECT_SEED_VERSION = '1'
+
+const DEFAULT_PROJECT_NAME = 'project (default)'
+
+const DEFAULT_PROJECT_ROLES = ['End User', 'Developer', 'DevOps Engineer']
+
+const DEFAULT_PROJECT_USE_CASES = [
+  'Create a project',
+  'View saved projects',
+  'Add a role to a project',
+  'Edit a role in a project',
+  'Delete a role from a project',
+  'Add a use case to a project',
+  'Edit a use case in a project',
+  'Delete a use case from a project',
+  'Use the app offline (PWA)',
+  'Deploy app to GitHub Pages',
+]
+
+const ALLOWED_VALUE_TABLES = ['project_roles', 'project_use_cases'] as const
+type ValueTable = (typeof ALLOWED_VALUE_TABLES)[number]
+
+async function batchInsertValues(db: PGlite, table: ValueTable, projectId: number, values: string[]) {
+  if (values.length === 0) return
+  if (!ALLOWED_VALUE_TABLES.includes(table)) {
+    throw new Error(`Invalid table: ${table}`)
+  }
+  const params: (number | string)[] = []
+  const placeholders = values.map((value, index) => {
+    params.push(projectId, value)
+    return `($${index * 2 + 1}, $${index * 2 + 2})`
+  })
+  await db.query(`INSERT INTO ${table} (project_id, value) VALUES ${placeholders.join(', ')}`, params)
+}
+
+async function seedDefaultProject(db: PGlite) {
+  const versionResult = await db.query<{ value: string }>(
+    "SELECT value FROM metadata WHERE key = 'default_project_seed_version' LIMIT 1",
+  )
+  const storedVersion = versionResult.rows[0]?.value
+
+  if (storedVersion === DEFAULT_PROJECT_SEED_VERSION) {
+    return
+  }
+
+  const defaultProjectResult = await db.query<{ id: number }>(
+    'SELECT id FROM projects WHERE is_default = TRUE LIMIT 1',
+  )
+  const defaultProject = defaultProjectResult.rows[0]
+
+  let projectId: number
+  if (defaultProject) {
+    projectId = defaultProject.id
+    await db.query('DELETE FROM project_roles WHERE project_id = $1', [projectId])
+    await db.query('DELETE FROM project_use_cases WHERE project_id = $1', [projectId])
+  } else {
+    const insertResult = await db.query<{ id: number }>(
+      'INSERT INTO projects (name, is_default) VALUES ($1, TRUE) RETURNING id',
+      [DEFAULT_PROJECT_NAME],
+    )
+    const inserted = insertResult.rows[0]
+    if (!inserted) {
+      throw new Error('Unable to create default project')
+    }
+    projectId = inserted.id
+  }
+
+  await batchInsertValues(db, 'project_roles', projectId, DEFAULT_PROJECT_ROLES)
+  await batchInsertValues(db, 'project_use_cases', projectId, DEFAULT_PROJECT_USE_CASES)
+
+  await db.query(
+    "INSERT INTO metadata (key, value) VALUES ('default_project_seed_version', $1) ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value",
+    [DEFAULT_PROJECT_SEED_VERSION],
+  )
 }
 
 let dbPromise: Promise<PGlite> | null = null
@@ -57,7 +135,15 @@ async function getDatabase() {
           project_id INTEGER NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
           value TEXT NOT NULL
         );
+
+        ALTER TABLE projects ADD COLUMN IF NOT EXISTS is_default BOOLEAN NOT NULL DEFAULT FALSE;
+
+        CREATE TABLE IF NOT EXISTS metadata (
+          key TEXT PRIMARY KEY,
+          value TEXT NOT NULL
+        );
       `)
+      await seedDefaultProject(db)
       return db
     })()
   }
@@ -83,6 +169,7 @@ async function hydrateProject(db: PGlite, project: DbProject): Promise<Project> 
   return {
     id: project.id,
     name: project.name,
+    isDefault: project.is_default,
     roles,
     useCases,
   }
@@ -105,13 +192,13 @@ export function createPgliteProjectRepository(): ProjectRepository {
   return {
     async listProjects() {
       const db = await getDatabase()
-      const result = await db.query<DbProject>('SELECT id, name FROM projects ORDER BY id DESC')
+      const result = await db.query<DbProject>('SELECT id, name, is_default FROM projects ORDER BY id DESC')
       return Promise.all(result.rows.map((project) => hydrateProject(db, project)))
     },
 
     async getProject(projectId) {
       const db = await getDatabase()
-      const result = await db.query<DbProject>('SELECT id, name FROM projects WHERE id = $1', [projectId])
+      const result = await db.query<DbProject>('SELECT id, name, is_default FROM projects WHERE id = $1', [projectId])
       const project = result.rows[0]
       if (!project) {
         return null
@@ -123,7 +210,7 @@ export function createPgliteProjectRepository(): ProjectRepository {
     async createProject(input) {
       const db = await getDatabase()
       const result = await db.query<DbProject>(
-        'INSERT INTO projects (name) VALUES ($1) RETURNING id, name',
+        'INSERT INTO projects (name) VALUES ($1) RETURNING id, name, is_default',
         [input.name],
       )
       const project = result.rows[0]
@@ -149,8 +236,8 @@ export function createPgliteProjectRepository(): ProjectRepository {
 
     async addProjectRole(projectId, role) {
       const db = await getDatabase()
-      // hydrateProject needs both id and name to return a complete project payload after update.
-      const project = await db.query<DbProject>('SELECT id, name FROM projects WHERE id = $1', [projectId])
+      // hydrateProject needs id, name, and is_default to return a complete project payload after update.
+      const project = await db.query<DbProject>('SELECT id, name, is_default FROM projects WHERE id = $1', [projectId])
       if (!project.rows[0]) {
         return null
       }
@@ -170,7 +257,7 @@ export function createPgliteProjectRepository(): ProjectRepository {
 
     async updateProjectRole(projectId, currentRole, nextRole) {
       const db = await getDatabase()
-      const project = await db.query<DbProject>('SELECT id, name FROM projects WHERE id = $1', [projectId])
+      const project = await db.query<DbProject>('SELECT id, name, is_default FROM projects WHERE id = $1', [projectId])
       if (!project.rows[0]) {
         return null
       }
@@ -204,7 +291,7 @@ export function createPgliteProjectRepository(): ProjectRepository {
 
     async removeProjectRole(projectId, role) {
       const db = await getDatabase()
-      const project = await db.query<DbProject>('SELECT id, name FROM projects WHERE id = $1', [projectId])
+      const project = await db.query<DbProject>('SELECT id, name, is_default FROM projects WHERE id = $1', [projectId])
       if (!project.rows[0]) {
         return null
       }
@@ -224,8 +311,8 @@ export function createPgliteProjectRepository(): ProjectRepository {
 
     async addProjectUseCase(projectId, useCase) {
       const db = await getDatabase()
-      // hydrateProject needs both id and name to return a complete project payload after update.
-      const project = await db.query<DbProject>('SELECT id, name FROM projects WHERE id = $1', [projectId])
+      // hydrateProject needs id, name, and is_default to return a complete project payload after update.
+      const project = await db.query<DbProject>('SELECT id, name, is_default FROM projects WHERE id = $1', [projectId])
       if (!project.rows[0]) {
         return null
       }
@@ -248,7 +335,7 @@ export function createPgliteProjectRepository(): ProjectRepository {
 
     async updateProjectUseCase(projectId, currentUseCase, nextUseCase) {
       const db = await getDatabase()
-      const project = await db.query<DbProject>('SELECT id, name FROM projects WHERE id = $1', [projectId])
+      const project = await db.query<DbProject>('SELECT id, name, is_default FROM projects WHERE id = $1', [projectId])
       if (!project.rows[0]) {
         return null
       }
@@ -285,7 +372,7 @@ export function createPgliteProjectRepository(): ProjectRepository {
 
     async removeProjectUseCase(projectId, useCase) {
       const db = await getDatabase()
-      const project = await db.query<DbProject>('SELECT id, name FROM projects WHERE id = $1', [projectId])
+      const project = await db.query<DbProject>('SELECT id, name, is_default FROM projects WHERE id = $1', [projectId])
       if (!project.rows[0]) {
         return null
       }
