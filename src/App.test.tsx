@@ -60,6 +60,49 @@ class InMemoryProjectRepository implements ProjectRepository {
     return updatedProject
   }
 
+  async updateProjectRole(projectId: number, currentRole: string, nextRole: string) {
+    const project = this.projects.find((value) => value.id === projectId)
+    if (!project) {
+      return null
+    }
+
+    const normalizedCurrentRole = this.normalizeAndValidateTextField(currentRole, 'Role')
+    const normalizedNextRole = this.normalizeAndValidateTextField(nextRole, 'Role')
+    const currentIndex = project.roles.findIndex((value) => value === normalizedCurrentRole)
+    if (currentIndex < 0) {
+      throw new Error('Role not found')
+    }
+
+    if (normalizedCurrentRole !== normalizedNextRole && project.roles.some((value) => value === normalizedNextRole)) {
+      throw new Error('Role already exists')
+    }
+
+    const updatedRoles = [...project.roles]
+    updatedRoles[currentIndex] = normalizedNextRole
+    const updatedProject = { ...project, roles: updatedRoles }
+    this.projects = this.projects.map((value) => (value.id === projectId ? updatedProject : value))
+    return updatedProject
+  }
+
+  async removeProjectRole(projectId: number, role: string) {
+    const project = this.projects.find((value) => value.id === projectId)
+    if (!project) {
+      return null
+    }
+
+    const normalizedRole = this.normalizeAndValidateTextField(role, 'Role')
+    if (!project.roles.includes(normalizedRole)) {
+      throw new Error('Role not found')
+    }
+
+    const updatedProject = {
+      ...project,
+      roles: project.roles.filter((value) => value !== normalizedRole),
+    }
+    this.projects = this.projects.map((value) => (value.id === projectId ? updatedProject : value))
+    return updatedProject
+  }
+
   async addProjectUseCase(projectId: number, useCase: string) {
     const project = this.projects.find((value) => value.id === projectId)
     if (!project) {
@@ -214,6 +257,54 @@ describe('App', () => {
 
     await waitFor(() => {
       expect(screen.queryByText('Approve refund')).not.toBeInTheDocument()
+    })
+  })
+
+  it('edits and deletes a role', async () => {
+    const repository = new InMemoryProjectRepository()
+
+    render(
+      <MemoryRouter initialEntries={['/']}>
+        <App repository={repository} />
+      </MemoryRouter>,
+    )
+
+    fireEvent.change(screen.getByLabelText('Project name'), { target: { value: 'Billing' } })
+    fireEvent.change(screen.getByLabelText('Roles (one per line)'), { target: { value: 'Admin' } })
+    fireEvent.change(screen.getByLabelText('Use cases (one per line)'), { target: { value: 'Create invoice' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Save project' }))
+
+    const projectLink = await screen.findByRole('link', { name: 'Billing' })
+    fireEvent.click(projectLink)
+
+    await waitFor(() => {
+      expect(screen.getByText('Admin')).toBeInTheDocument()
+    })
+
+    const adminListItem = screen.getByText('Admin').closest('li')
+    if (!adminListItem) {
+      throw new Error('Admin list item not found')
+    }
+
+    fireEvent.click(within(adminListItem).getByRole('button', { name: 'Edit role: Admin' }))
+    fireEvent.change(screen.getByRole('textbox', { name: 'Edit role' }), { target: { value: 'Auditor' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+
+    await waitFor(() => {
+      expect(screen.getByText('Auditor')).toBeInTheDocument()
+      expect(screen.queryByText('Admin')).not.toBeInTheDocument()
+    })
+
+    const auditorListItem = screen.getByText('Auditor').closest('li')
+    if (!auditorListItem) {
+      throw new Error('Auditor list item not found')
+    }
+
+    fireEvent.click(within(auditorListItem).getByRole('button', { name: 'Delete role: Auditor' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Confirm delete role' }))
+
+    await waitFor(() => {
+      expect(screen.queryByText('Auditor')).not.toBeInTheDocument()
     })
   })
 })
