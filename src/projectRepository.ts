@@ -38,6 +38,8 @@ type DbValue = {
 
 const DEFAULT_PROJECT_SEED_VERSION = '1'
 
+const DEFAULT_PROJECT_NAME = 'project (default)'
+
 const DEFAULT_PROJECT_ROLES = ['End User', 'Developer', 'DevOps Engineer']
 
 const DEFAULT_PROJECT_USE_CASES = [
@@ -53,13 +55,14 @@ const DEFAULT_PROJECT_USE_CASES = [
   'Deploy app to GitHub Pages',
 ]
 
-async function batchInsertValues(
-  db: PGlite,
-  table: 'project_roles' | 'project_use_cases',
-  projectId: number,
-  values: string[],
-) {
+const ALLOWED_VALUE_TABLES = ['project_roles', 'project_use_cases'] as const
+type ValueTable = (typeof ALLOWED_VALUE_TABLES)[number]
+
+async function batchInsertValues(db: PGlite, table: ValueTable, projectId: number, values: string[]) {
   if (values.length === 0) return
+  if (!ALLOWED_VALUE_TABLES.includes(table)) {
+    throw new Error(`Invalid table: ${table}`)
+  }
   const params: (number | string)[] = []
   const placeholders = values.map((value, index) => {
     params.push(projectId, value)
@@ -68,20 +71,13 @@ async function batchInsertValues(
   await db.query(`INSERT INTO ${table} (project_id, value) VALUES ${placeholders.join(', ')}`, params)
 }
 
-let seedApplied = false
-
 async function seedDefaultProject(db: PGlite) {
-  if (seedApplied) {
-    return
-  }
-
   const versionResult = await db.query<{ value: string }>(
     "SELECT value FROM metadata WHERE key = 'default_project_seed_version' LIMIT 1",
   )
   const storedVersion = versionResult.rows[0]?.value
 
   if (storedVersion === DEFAULT_PROJECT_SEED_VERSION) {
-    seedApplied = true
     return
   }
 
@@ -97,7 +93,8 @@ async function seedDefaultProject(db: PGlite) {
     await db.query('DELETE FROM project_use_cases WHERE project_id = $1', [projectId])
   } else {
     const insertResult = await db.query<{ id: number }>(
-      "INSERT INTO projects (name, is_default) VALUES ('project (default)', TRUE) RETURNING id",
+      'INSERT INTO projects (name, is_default) VALUES ($1, TRUE) RETURNING id',
+      [DEFAULT_PROJECT_NAME],
     )
     const inserted = insertResult.rows[0]
     if (!inserted) {
@@ -113,8 +110,6 @@ async function seedDefaultProject(db: PGlite) {
     "INSERT INTO metadata (key, value) VALUES ('default_project_seed_version', $1) ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value",
     [DEFAULT_PROJECT_SEED_VERSION],
   )
-
-  seedApplied = true
 }
 
 let dbPromise: Promise<PGlite> | null = null
