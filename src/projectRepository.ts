@@ -36,13 +36,13 @@ type DbValue = {
   value: string
 }
 
-const DEFAULT_PROJECT_SEED_VERSION = '1'
+const DEFAULT_PROJECT_SEED_VERSION = '2'
 
-const DEFAULT_PROJECT_NAME = 'project (default)'
+export const DEFAULT_PROJECT_NAME = 'specs (default)'
 
-const DEFAULT_PROJECT_ROLES = ['End User', 'Developer', 'DevOps Engineer']
+export const DEFAULT_PROJECT_ROLES = ['End User', 'Developer', 'DevOps Engineer']
 
-const DEFAULT_PROJECT_USE_CASES = [
+export const DEFAULT_PROJECT_USE_CASES = [
   'Create a project',
   'View saved projects',
   'Add a role to a project',
@@ -51,6 +51,7 @@ const DEFAULT_PROJECT_USE_CASES = [
   'Add a use case to a project',
   'Edit a use case in a project',
   'Delete a use case from a project',
+  'Download documentation as ZIP',
   'Use the app offline (PWA)',
   'Deploy app to GitHub Pages',
 ]
