@@ -12,6 +12,7 @@ export default defineConfig({
       includeAssets: ['vite.svg'],
       workbox: {
         maximumFileSizeToCacheInBytes: 12 * 1024 * 1024,
+        navigateFallbackDenylist: [/^\/specs\/docs\//],
       },
       manifest: {
         name: 'Specs Builder',
