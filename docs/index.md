@@ -1,16 +1,21 @@
-# Specs Documentation
+# specs (default)
 
-This repository contains an offline-first **Specs Builder** web application.
+## Roles
 
-## What the webapp covers
+- End User
+- Developer
+- DevOps Engineer
 
-- Project management
-- Roles per project
-- Use cases per project
-- Local persistence in the browser through PGlite
-- PWA support for offline usage
+## Use Cases
 
-Open the webapp on GitHub Pages and create a sample project to verify the application behavior.
-
-- Webapp: `https://tiogars.github.io/specs/`
-- Docs: `https://tiogars.github.io/specs/docs/`
+- Create a project
+- View saved projects
+- Add a role to a project
+- Edit a role in a project
+- Delete a role from a project
+- Add a use case to a project
+- Edit a use case in a project
+- Delete a use case from a project
+- Download documentation as ZIP
+- Use the app offline (PWA)
+- Deploy app to GitHub Pages

@@ -40,6 +40,9 @@ jobs:
       - name: Build webapp
         run: pnpm build
 
+      - name: Generate self-documentation
+        run: node --experimental-strip-types scripts/generate-default-docs.ts
+
       - name: Build docs
         run: |
           [ -d dist ] || { echo "Validation failed: dist directory not found after the webapp build. Check the webapp build step output above for errors."; exit 1; }
