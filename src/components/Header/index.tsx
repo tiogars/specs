@@ -29,7 +29,7 @@ const Header = ({ docsHref, repository, showMenuButton = false, onMenuClick }: H
   )
 
   return (
-    <AppBar position="fixed" color="default" elevation={trigger ? 4 : 0}>
+    <AppBar position="fixed" color="default" elevation={trigger ? 4 : 0} sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
       <Toolbar>
         {showMenuButton && (
           <IconButton
