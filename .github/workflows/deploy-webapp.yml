@@ -52,6 +52,10 @@ jobs:
       - name: Compute app version
         run: |
           package_version="$(jq -r '.version' package.json)"
+          [[ ${#GITHUB_SHA} -ge 7 ]] || {
+            echo "GITHUB_SHA is shorter than 7 characters: $GITHUB_SHA"
+            exit 1
+          }
           short_sha="${GITHUB_SHA::7}"
           app_version="${package_version}+${GITHUB_RUN_NUMBER}.${short_sha}"
           [[ "$app_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+\+[0-9]+\.[0-9a-f]{7}$ ]] || {
