@@ -5,6 +5,9 @@ on:
     branches: [main]
   workflow_dispatch:
 
+env:
+  CUSTOM_DOMAIN: specs.tiogars.fr
+
 permissions:
   contents: read
   pages: write
@@ -51,7 +54,7 @@ jobs:
           package_version="$(jq -r '.version' package.json)"
           short_sha="${GITHUB_SHA::7}"
           app_version="${package_version}+${GITHUB_RUN_NUMBER}.${short_sha}"
-          [[ "$app_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+\+[0-9]+\.[0-9a-f]{7}$ ]] || {
+          [[ "$app_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+\+[0-9]+\.[0-9a-fA-F]{7}$ ]] || {
             echo "Computed APP_VERSION has an invalid format: $app_version"
             exit 1
           }
@@ -69,7 +72,7 @@ jobs:
           mkdocs build --strict --site-dir dist/docs
 
       - name: Add custom domain
-        run: printf '%s' 'specs.tiogars.fr' > dist/CNAME
+        run: printf '%s' "$CUSTOM_DOMAIN" > dist/CNAME
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v4
