@@ -48,9 +48,14 @@ jobs:
 
       - name: Compute app version
         run: |
-          package_version="$(node -p "JSON.parse(require('node:fs').readFileSync('./package.json', 'utf8')).version")"
+          package_version="$(jq -r '.version' package.json)"
           short_sha="${GITHUB_SHA::7}"
-          echo "APP_VERSION=${package_version}+${GITHUB_RUN_NUMBER}.${short_sha}" >> "$GITHUB_ENV"
+          app_version="${package_version}+${GITHUB_RUN_NUMBER}.${short_sha}"
+          [[ "$app_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+\+[0-9]+\.[0-9a-f]{7}$ ]] || {
+            echo "Computed APP_VERSION has an invalid format: $app_version"
+            exit 1
+          }
+          echo "APP_VERSION=${app_version}" >> "$GITHUB_ENV"
 
       - name: Build webapp
         run: pnpm build
@@ -62,6 +67,9 @@ jobs:
         run: |
           [ -d dist ] || { echo "Validation failed: dist directory not found after the webapp build. Check the webapp build step output above for errors."; exit 1; }
           mkdocs build --strict --site-dir dist/docs
+
+      - name: Add custom domain
+        run: printf '%s' 'specs.tiogars.fr' > dist/CNAME
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v4

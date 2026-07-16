@@ -29,5 +29,5 @@ pnpm build
 
 ## Deployment
 
-- `.github/workflows/deploy-webapp.yml` builds the webapp, uploads the combined Pages artifact with the custom domain `specs.tiogars.fr`, and publishes MkDocs under `/docs`
+- `.github/workflows/deploy-webapp.yml` builds the webapp, writes the custom domain `specs.tiogars.fr` into the Pages artifact, and publishes MkDocs under `/docs`
 - deployed builds append the GitHub Actions run number and short commit SHA to the package version shown in the webapp footer
