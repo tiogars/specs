@@ -11,6 +11,7 @@ type DataDomainEditPageProps = {
 
 type DataDomainFormValues = {
   domain: string
+  description: string
 }
 
 const DataDomainEditPage = ({ repository }: DataDomainEditPageProps) => {
@@ -22,17 +23,23 @@ const DataDomainEditPage = ({ repository }: DataDomainEditPageProps) => {
 
   const decodedDomain = domainValue ? decodeURIComponent(domainValue) : ''
 
-  const { register, handleSubmit, formState } = useForm<DataDomainFormValues>({
-    defaultValues: { domain: decodedDomain },
+  const { register, handleSubmit, formState, reset } = useForm<DataDomainFormValues>({
+    defaultValues: { domain: decodedDomain, description: '' },
   })
 
   useEffect(() => {
     const id = Number(projectId)
     if (!Number.isFinite(id)) return
     repository.getProject(id).then((project) => {
-      if (project) setProjectName(project.name)
+      if (project) {
+        setProjectName(project.name)
+        const current = project.dataDomains.find((d) => d.name === decodedDomain)
+        if (current) {
+          reset({ domain: current.name, description: current.description })
+        }
+      }
     })
-  }, [projectId, repository])
+  }, [projectId, repository, decodedDomain, reset])
 
   const onSubmit = handleSubmit(async (values) => {
     const id = Number(projectId)
@@ -40,7 +47,7 @@ const DataDomainEditPage = ({ repository }: DataDomainEditPageProps) => {
     setIsSaving(true)
     setError(null)
     try {
-      const updated = await repository.updateProjectDataDomain(id, decodedDomain, values.domain.trim())
+      const updated = await repository.updateProjectDataDomain(id, decodedDomain, values.domain.trim(), values.description.trim())
       if (!updated) {
         setError('Unable to update data domain. Project may have been deleted.')
         return
@@ -65,6 +72,12 @@ const DataDomainEditPage = ({ repository }: DataDomainEditPageProps) => {
               {...register('domain', { required: 'Data domain is required' })}
               error={Boolean(formState.errors.domain)}
               helperText={formState.errors.domain?.message}
+            />
+            <TextField
+              label="Description"
+              multiline
+              minRows={2}
+              {...register('description')}
             />
             <Stack direction="row" spacing={1}>
               <Button disabled={isSaving} type="submit" startIcon={<SaveIcon />} variant="contained">

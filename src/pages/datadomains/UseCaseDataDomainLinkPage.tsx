@@ -13,7 +13,7 @@ import {
   Typography,
 } from '@mui/material'
 import LinkIcon from '@mui/icons-material/Link'
-import type { ProjectRepository } from '../../projectRepository'
+import type { DataDomain, ProjectRepository } from '../../projectRepository'
 
 type UseCaseDataDomainLinkPageProps = {
   repository: ProjectRepository
@@ -23,8 +23,8 @@ const UseCaseDataDomainLinkPage = ({ repository }: UseCaseDataDomainLinkPageProp
   const { projectId, ucValue } = useParams()
   const navigate = useNavigate()
   const [projectName, setProjectName] = useState('')
-  const [availableDomains, setAvailableDomains] = useState<string[]>([])
-  const [linkedDomains, setLinkedDomains] = useState<string[]>([])
+  const [availableDomains, setAvailableDomains] = useState<DataDomain[]>([])
+  const [linkedDomains, setLinkedDomains] = useState<DataDomain[]>([])
   const [selectedDomain, setSelectedDomain] = useState('')
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -45,7 +45,7 @@ const UseCaseDataDomainLinkPage = ({ repository }: UseCaseDataDomainLinkPageProp
     )
   }, [id, decodedUseCase, repository])
 
-  const linkableDomains = availableDomains.filter((d) => !linkedDomains.includes(d))
+  const linkableDomains = availableDomains.filter((d) => !linkedDomains.some((ld) => ld.name === d.name))
 
   const handleLink = async () => {
     if (!selectedDomain) return
@@ -92,8 +92,8 @@ const UseCaseDataDomainLinkPage = ({ repository }: UseCaseDataDomainLinkPageProp
                     onChange={(e) => setSelectedDomain(e.target.value)}
                   >
                     {linkableDomains.map((domain) => (
-                      <MenuItem key={domain} value={domain}>
-                        {domain}
+                      <MenuItem key={domain.name} value={domain.name}>
+                        {domain.name}
                       </MenuItem>
                     ))}
                   </Select>
