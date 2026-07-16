@@ -83,7 +83,7 @@ const ProjectRolesPage = ({ repository }: ProjectRolesPageProps) => {
     try {
       const updated = await repository.removeProjectRole(project.id, rolePendingDeletion)
       if (!updated) {
-        setError('Project not found.')
+        setError('Unable to delete role. Project may have been deleted.')
         return
       }
       setProject(updated)

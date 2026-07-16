@@ -83,7 +83,7 @@ const ProjectUseCasesPage = ({ repository }: ProjectUseCasesPageProps) => {
     try {
       const updated = await repository.removeProjectUseCase(project.id, useCasePendingDeletion)
       if (!updated) {
-        setError('Project not found.')
+        setError('Unable to delete use case. Project may have been deleted.')
         return
       }
       setProject(updated)

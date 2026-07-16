@@ -40,7 +40,7 @@ const UseCaseCreatePage = ({ repository }: UseCaseCreatePageProps) => {
     try {
       const updated = await repository.addProjectUseCase(id, values.useCase.trim())
       if (!updated) {
-        setError('Project not found.')
+        setError('Unable to add use case. Project may have been deleted.')
         return
       }
       navigate(`/projects/${id}/use-cases`)

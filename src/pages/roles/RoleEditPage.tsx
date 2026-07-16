@@ -42,7 +42,7 @@ const RoleEditPage = ({ repository }: RoleEditPageProps) => {
     try {
       const updated = await repository.updateProjectRole(id, decodedRole, values.role.trim())
       if (!updated) {
-        setError('Project not found.')
+        setError('Unable to update role. Project may have been deleted.')
         return
       }
       navigate(`/projects/${id}/roles`)

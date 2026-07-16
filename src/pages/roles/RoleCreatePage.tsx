@@ -40,7 +40,7 @@ const RoleCreatePage = ({ repository }: RoleCreatePageProps) => {
     try {
       const updated = await repository.addProjectRole(id, values.role.trim())
       if (!updated) {
-        setError('Project not found.')
+        setError('Unable to add role. Project may have been deleted.')
         return
       }
       navigate(`/projects/${id}/roles`)

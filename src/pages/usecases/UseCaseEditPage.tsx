@@ -42,7 +42,7 @@ const UseCaseEditPage = ({ repository }: UseCaseEditPageProps) => {
     try {
       const updated = await repository.updateProjectUseCase(id, decodedUseCase, values.useCase.trim())
       if (!updated) {
-        setError('Project not found.')
+        setError('Unable to update use case. Project may have been deleted.')
         return
       }
       navigate(`/projects/${id}/use-cases`)
