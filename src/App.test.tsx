@@ -35,6 +35,7 @@ class InMemoryProjectRepository implements ProjectRepository {
       isDefault: false,
       roles: input.roles,
       useCases: input.useCases,
+      dataDomains: [],
     }
 
     this.projects = [project, ...this.projects]
@@ -166,6 +167,97 @@ class InMemoryProjectRepository implements ProjectRepository {
     }
     this.projects = this.projects.map((value) => (value.id === projectId ? updatedProject : value))
     return updatedProject
+  }
+
+  async addProjectDataDomain(projectId: number, domain: string) {
+    const project = this.projects.find((value) => value.id === projectId)
+    if (!project) {
+      return null
+    }
+
+    const normalizedDomain = this.normalizeAndValidateTextField(domain, 'Data domain')
+    const updatedProject = project.dataDomains.includes(normalizedDomain)
+      ? project
+      : { ...project, dataDomains: [...project.dataDomains, normalizedDomain] }
+
+    if (updatedProject !== project) {
+      this.projects = this.projects.map((value) => (value.id === projectId ? updatedProject : value))
+    }
+
+    return updatedProject
+  }
+
+  async updateProjectDataDomain(projectId: number, currentDomain: string, nextDomain: string) {
+    const project = this.projects.find((value) => value.id === projectId)
+    if (!project) {
+      return null
+    }
+
+    const normalizedCurrent = this.normalizeAndValidateTextField(currentDomain, 'Data domain')
+    const normalizedNext = this.normalizeAndValidateTextField(nextDomain, 'Data domain')
+    const currentIndex = project.dataDomains.findIndex((value) => value === normalizedCurrent)
+    if (currentIndex < 0) {
+      throw new Error('Data domain not found')
+    }
+
+    if (normalizedCurrent !== normalizedNext && project.dataDomains.some((value) => value === normalizedNext)) {
+      throw new Error('Data domain already exists')
+    }
+
+    const updatedDomains = [...project.dataDomains]
+    updatedDomains[currentIndex] = normalizedNext
+    const updatedProject = { ...project, dataDomains: updatedDomains }
+    this.projects = this.projects.map((value) => (value.id === projectId ? updatedProject : value))
+    return updatedProject
+  }
+
+  async removeProjectDataDomain(projectId: number, domain: string) {
+    const project = this.projects.find((value) => value.id === projectId)
+    if (!project) {
+      return null
+    }
+
+    const normalizedDomain = this.normalizeAndValidateTextField(domain, 'Data domain')
+    if (!project.dataDomains.includes(normalizedDomain)) {
+      throw new Error('Data domain not found')
+    }
+
+    const updatedProject = {
+      ...project,
+      dataDomains: project.dataDomains.filter((value) => value !== normalizedDomain),
+    }
+    this.projects = this.projects.map((value) => (value.id === projectId ? updatedProject : value))
+    return updatedProject
+  }
+
+  private useCaseDomains: Map<string, string[]> = new Map()
+
+  private useCaseDomainKey(projectId: number, useCase: string) {
+    return `${projectId}::${useCase}`
+  }
+
+  async getUseCaseDataDomains(projectId: number, useCase: string) {
+    return this.useCaseDomains.get(this.useCaseDomainKey(projectId, useCase)) ?? []
+  }
+
+  async addUseCaseDataDomain(projectId: number, useCase: string, domain: string) {
+    const key = this.useCaseDomainKey(projectId, useCase)
+    const current = this.useCaseDomains.get(key) ?? []
+    if (!current.includes(domain)) {
+      this.useCaseDomains.set(key, [...current, domain])
+    }
+    return this.useCaseDomains.get(key) ?? []
+  }
+
+  async removeUseCaseDataDomain(projectId: number, useCase: string, domain: string) {
+    const key = this.useCaseDomainKey(projectId, useCase)
+    const current = this.useCaseDomains.get(key) ?? []
+    if (!current.includes(domain)) {
+      throw new Error('Data domain link not found')
+    }
+    const updated = current.filter((d) => d !== domain)
+    this.useCaseDomains.set(key, updated)
+    return updated
   }
 }
 

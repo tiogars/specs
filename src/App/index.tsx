@@ -13,6 +13,12 @@ import RoleEditPage from '../pages/roles/RoleEditPage'
 import ProjectUseCasesPage from '../pages/usecases/ProjectUseCasesPage'
 import UseCaseCreatePage from '../pages/usecases/UseCaseCreatePage'
 import UseCaseEditPage from '../pages/usecases/UseCaseEditPage'
+import ProjectDataDomainsPage from '../pages/datadomains/ProjectDataDomainsPage'
+import DataDomainCreatePage from '../pages/datadomains/DataDomainCreatePage'
+import DataDomainEditPage from '../pages/datadomains/DataDomainEditPage'
+import UseCaseDataDomainsPage from '../pages/datadomains/UseCaseDataDomainsPage'
+import UseCaseDataDomainLinkPage from '../pages/datadomains/UseCaseDataDomainLinkPage'
+import UseCaseDataDomainCreatePage from '../pages/datadomains/UseCaseDataDomainCreatePage'
 import Footer from '../components/Footer'
 import type { AppProps } from './App.types'
 
@@ -81,6 +87,30 @@ const App = ({ repository }: AppProps) => {
               path="/projects/:projectId/use-cases/edit/:ucValue"
               element={<UseCaseEditPage repository={resolvedRepository} />}
             />
+            <Route
+              path="/projects/:projectId/use-cases/:ucValue/data-domains"
+              element={<UseCaseDataDomainsPage repository={resolvedRepository} />}
+            />
+            <Route
+              path="/projects/:projectId/use-cases/:ucValue/data-domains/link"
+              element={<UseCaseDataDomainLinkPage repository={resolvedRepository} />}
+            />
+            <Route
+              path="/projects/:projectId/use-cases/:ucValue/data-domains/new"
+              element={<UseCaseDataDomainCreatePage repository={resolvedRepository} />}
+            />
+            <Route
+              path="/projects/:projectId/data-domains"
+              element={<ProjectDataDomainsPage repository={resolvedRepository} />}
+            />
+            <Route
+              path="/projects/:projectId/data-domains/new"
+              element={<DataDomainCreatePage repository={resolvedRepository} />}
+            />
+            <Route
+              path="/projects/:projectId/data-domains/edit/:domainValue"
+              element={<DataDomainEditPage repository={resolvedRepository} />}
+            />
             <Route path="*" element={<Navigate to="/projects" replace />} />
           </Routes>
         </Box>
@@ -91,3 +121,4 @@ const App = ({ repository }: AppProps) => {
 }
 
 export default App
+
