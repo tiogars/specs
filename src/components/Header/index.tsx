@@ -1,28 +1,86 @@
-import { Link as RouterLink } from 'react-router-dom'
-import { AppBar, Button, Toolbar, Typography } from '@mui/material'
-import FolderIcon from '@mui/icons-material/Folder'
+import { useEffect, useMemo, useState } from 'react'
+import { useNavigate, useMatch } from 'react-router-dom'
+import { AppBar, IconButton, MenuItem, Select, Toolbar, Tooltip, Typography, useScrollTrigger } from '@mui/material'
 import AutoStoriesIcon from '@mui/icons-material/AutoStories'
+import MenuIcon from '@mui/icons-material/Menu'
+import type { Project } from '../../projectRepository'
 import type { HeaderProps } from './Header.types'
 
-const Header = ({ docsHref }: HeaderProps) => (
-  <AppBar position="static" color="transparent" elevation={0}>
-    <Toolbar>
-      <Typography
-        variant="h6"
-        component={RouterLink}
-        to="/"
-        sx={{ flexGrow: 1, textDecoration: 'none', color: 'inherit' }}
-      >
-        Specs webapp
-      </Typography>
-      <Button component={RouterLink} to="/" startIcon={<FolderIcon />}>
-        Projects
-      </Button>
-      <Button component="a" href={docsHref} startIcon={<AutoStoriesIcon />} target="_blank" rel="noreferrer">
-        Documentation
-      </Button>
-    </Toolbar>
-  </AppBar>
-)
+const Header = ({ docsHref, repository, showMenuButton = false, onMenuClick }: HeaderProps) => {
+  const trigger = useScrollTrigger({ disableHysteresis: true, threshold: 0 })
+  const navigate = useNavigate()
+  const projectMatch = useMatch('/projects/:id/*')
+  const currentProjectId = projectMatch?.params.id ?? ''
+  const [projects, setProjects] = useState<Project[]>([])
+
+  useEffect(() => {
+    let cancelled = false
+    repository.listProjects().then((list) => {
+      if (!cancelled) setProjects(list)
+    }).catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [repository])
+
+  const projectNamesById = useMemo(
+    () => new Map(projects.map((p) => [String(p.id), p.name])),
+    [projects],
+  )
+
+  return (
+    <AppBar position="fixed" color="default" elevation={trigger ? 4 : 0}>
+      <Toolbar>
+        {showMenuButton && (
+          <IconButton
+            edge="start"
+            color="inherit"
+            aria-label="open navigation menu"
+            onClick={onMenuClick}
+            sx={{ mr: 1 }}
+          >
+            <MenuIcon />
+          </IconButton>
+        )}
+        <Typography variant="h6" sx={{ mr: 2, flexShrink: 0 }}>
+          Specs
+        </Typography>
+        <Select
+          value={currentProjectId}
+          displayEmpty
+          size="small"
+          onChange={(e) => {
+            const id = e.target.value
+            if (id) navigate(`/projects/${id}`)
+          }}
+          renderValue={(value) => {
+            if (!value) return <em>Select project</em>
+            return projectNamesById.get(value) ?? value
+          }}
+          sx={{ minWidth: 160, maxWidth: 300, flexGrow: 1, mr: 'auto' }}
+          inputProps={{ 'aria-label': 'Select project' }}
+        >
+          {projects.map((project) => (
+            <MenuItem key={project.id} value={String(project.id)}>
+              {project.name}
+            </MenuItem>
+          ))}
+        </Select>
+        <Tooltip title="Documentation">
+          <IconButton
+            component="a"
+            href={docsHref}
+            target="_blank"
+            rel="noreferrer"
+            color="inherit"
+            aria-label="Documentation"
+          >
+            <AutoStoriesIcon />
+          </IconButton>
+        </Tooltip>
+      </Toolbar>
+    </AppBar>
+  )
+}
 
 export default Header
