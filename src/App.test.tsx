@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import App from './App'
-import type { CreateProjectInput, DataDomain, Project, ProjectRepository } from './projectRepository'
+import type { CreateProjectInput, DataDomain, Project, ProjectRepository, Role, UseCase } from './projectRepository'
 
 class InMemoryProjectRepository implements ProjectRepository {
   private projects: Project[] = []
@@ -32,9 +32,10 @@ class InMemoryProjectRepository implements ProjectRepository {
     const project: Project = {
       id: this.nextId,
       name: input.name,
+      description: input.description,
       isDefault: false,
-      roles: input.roles,
-      useCases: input.useCases,
+      roles: input.roles.map((name) => ({ name, description: '' })),
+      useCases: input.useCases.map((name) => ({ name, description: '' })),
       dataDomains: [],
     }
 
@@ -44,16 +45,16 @@ class InMemoryProjectRepository implements ProjectRepository {
     return project
   }
 
-  async addProjectRole(projectId: number, role: string) {
+  async addProjectRole(projectId: number, role: string, description = '') {
     const project = this.projects.find((value) => value.id === projectId)
     if (!project) {
       return null
     }
 
     const normalizedRole = this.normalizeAndValidateTextField(role, 'Role')
-    const updatedProject = project.roles.includes(normalizedRole)
+    const updatedProject = project.roles.some((value) => value.name === normalizedRole)
       ? project
-      : { ...project, roles: [...project.roles, normalizedRole] }
+      : { ...project, roles: [...project.roles, { name: normalizedRole, description: description.trim() }] }
 
     if (updatedProject !== project) {
       this.projects = this.projects.map((value) => (value.id === projectId ? updatedProject : value))
@@ -62,7 +63,7 @@ class InMemoryProjectRepository implements ProjectRepository {
     return updatedProject
   }
 
-  async updateProjectRole(projectId: number, currentRole: string, nextRole: string) {
+  async updateProjectRole(projectId: number, currentRole: string, nextRole: string, nextDescription = '') {
     const project = this.projects.find((value) => value.id === projectId)
     if (!project) {
       return null
@@ -70,17 +71,20 @@ class InMemoryProjectRepository implements ProjectRepository {
 
     const normalizedCurrentRole = this.normalizeAndValidateTextField(currentRole, 'Role')
     const normalizedNextRole = this.normalizeAndValidateTextField(nextRole, 'Role')
-    const currentIndex = project.roles.findIndex((value) => value === normalizedCurrentRole)
+    const currentIndex = project.roles.findIndex((value) => value.name === normalizedCurrentRole)
     if (currentIndex < 0) {
       throw new Error('Role not found')
     }
 
-    if (normalizedCurrentRole !== normalizedNextRole && project.roles.some((value) => value === normalizedNextRole)) {
+    if (
+      normalizedCurrentRole !== normalizedNextRole &&
+      project.roles.some((value) => value.name === normalizedNextRole)
+    ) {
       throw new Error('Role already exists')
     }
 
-    const updatedRoles = [...project.roles]
-    updatedRoles[currentIndex] = normalizedNextRole
+    const updatedRoles: Role[] = [...project.roles]
+    updatedRoles[currentIndex] = { name: normalizedNextRole, description: nextDescription.trim() }
     const updatedProject = { ...project, roles: updatedRoles }
     this.projects = this.projects.map((value) => (value.id === projectId ? updatedProject : value))
     return updatedProject
@@ -93,28 +97,31 @@ class InMemoryProjectRepository implements ProjectRepository {
     }
 
     const normalizedRole = this.normalizeAndValidateTextField(role, 'Role')
-    if (!project.roles.includes(normalizedRole)) {
+    if (!project.roles.some((value) => value.name === normalizedRole)) {
       throw new Error('Role not found')
     }
 
     const updatedProject = {
       ...project,
-      roles: project.roles.filter((value) => value !== normalizedRole),
+      roles: project.roles.filter((value) => value.name !== normalizedRole),
     }
     this.projects = this.projects.map((value) => (value.id === projectId ? updatedProject : value))
     return updatedProject
   }
 
-  async addProjectUseCase(projectId: number, useCase: string) {
+  async addProjectUseCase(projectId: number, useCase: string, description = '') {
     const project = this.projects.find((value) => value.id === projectId)
     if (!project) {
       return null
     }
 
     const normalizedUseCase = this.normalizeAndValidateTextField(useCase, 'Use case')
-    const updatedProject = project.useCases.includes(normalizedUseCase)
+    const updatedProject = project.useCases.some((value) => value.name === normalizedUseCase)
       ? project
-      : { ...project, useCases: [...project.useCases, normalizedUseCase] }
+      : {
+          ...project,
+          useCases: [...project.useCases, { name: normalizedUseCase, description: description.trim() }],
+        }
 
     if (updatedProject !== project) {
       this.projects = this.projects.map((value) => (value.id === projectId ? updatedProject : value))
@@ -123,7 +130,7 @@ class InMemoryProjectRepository implements ProjectRepository {
     return updatedProject
   }
 
-  async updateProjectUseCase(projectId: number, currentUseCase: string, nextUseCase: string) {
+  async updateProjectUseCase(projectId: number, currentUseCase: string, nextUseCase: string, nextDescription = '') {
     const project = this.projects.find((value) => value.id === projectId)
     if (!project) {
       return null
@@ -131,20 +138,20 @@ class InMemoryProjectRepository implements ProjectRepository {
 
     const normalizedCurrentUseCase = this.normalizeAndValidateTextField(currentUseCase, 'Use case')
     const normalizedNextUseCase = this.normalizeAndValidateTextField(nextUseCase, 'Use case')
-    const currentIndex = project.useCases.findIndex((value) => value === normalizedCurrentUseCase)
+    const currentIndex = project.useCases.findIndex((value) => value.name === normalizedCurrentUseCase)
     if (currentIndex < 0) {
       throw new Error('Use case not found')
     }
 
     if (
       normalizedCurrentUseCase !== normalizedNextUseCase &&
-      project.useCases.some((value) => value === normalizedNextUseCase)
+      project.useCases.some((value) => value.name === normalizedNextUseCase)
     ) {
       throw new Error('Use case already exists')
     }
 
-    const updatedUseCases = [...project.useCases]
-    updatedUseCases[currentIndex] = normalizedNextUseCase
+    const updatedUseCases: UseCase[] = [...project.useCases]
+    updatedUseCases[currentIndex] = { name: normalizedNextUseCase, description: nextDescription.trim() }
     const updatedProject = { ...project, useCases: updatedUseCases }
     this.projects = this.projects.map((value) => (value.id === projectId ? updatedProject : value))
     return updatedProject
@@ -157,13 +164,13 @@ class InMemoryProjectRepository implements ProjectRepository {
     }
 
     const normalizedUseCase = this.normalizeAndValidateTextField(useCase, 'Use case')
-    if (!project.useCases.includes(normalizedUseCase)) {
+    if (!project.useCases.some((value) => value.name === normalizedUseCase)) {
       throw new Error('Use case not found')
     }
 
     const updatedProject = {
       ...project,
-      useCases: project.useCases.filter((value) => value !== normalizedUseCase),
+      useCases: project.useCases.filter((value) => value.name !== normalizedUseCase),
     }
     this.projects = this.projects.map((value) => (value.id === projectId ? updatedProject : value))
     return updatedProject

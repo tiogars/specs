@@ -11,6 +11,7 @@ type RoleEditPageProps = {
 
 type RoleFormValues = {
   role: string
+  description: string
 }
 
 const RoleEditPage = ({ repository }: RoleEditPageProps) => {
@@ -22,17 +23,23 @@ const RoleEditPage = ({ repository }: RoleEditPageProps) => {
 
   const decodedRole = roleValue ? decodeURIComponent(roleValue) : ''
 
-  const { register, handleSubmit, formState } = useForm<RoleFormValues>({
-    defaultValues: { role: decodedRole },
+  const { register, handleSubmit, formState, setValue } = useForm<RoleFormValues>({
+    defaultValues: { role: decodedRole, description: '' },
   })
 
   useEffect(() => {
     const id = Number(projectId)
     if (!Number.isFinite(id)) return
     repository.getProject(id).then((project) => {
-      if (project) setProjectName(project.name)
+      if (project) {
+        setProjectName(project.name)
+        const currentRole = project.roles.find((role) => role.name === decodedRole)
+        if (currentRole) {
+          setValue('description', currentRole.description)
+        }
+      }
     })
-  }, [projectId, repository])
+  }, [projectId, repository, decodedRole, setValue])
 
   const onSubmit = handleSubmit(async (values) => {
     const id = Number(projectId)
@@ -40,7 +47,12 @@ const RoleEditPage = ({ repository }: RoleEditPageProps) => {
     setIsSaving(true)
     setError(null)
     try {
-      const updated = await repository.updateProjectRole(id, decodedRole, values.role.trim())
+      const updated = await repository.updateProjectRole(
+        id,
+        decodedRole,
+        values.role.trim(),
+        values.description.trim(),
+      )
       if (!updated) {
         setError('Unable to update role. Project may have been deleted.')
         return
@@ -66,6 +78,7 @@ const RoleEditPage = ({ repository }: RoleEditPageProps) => {
               error={Boolean(formState.errors.role)}
               helperText={formState.errors.role?.message}
             />
+            <TextField label="Role description" multiline minRows={2} {...register('description')} />
             <Stack direction="row" spacing={1}>
               <Button disabled={isSaving} type="submit" startIcon={<SaveIcon />} variant="contained">
                 Save role

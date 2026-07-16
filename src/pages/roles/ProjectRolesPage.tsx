@@ -117,21 +117,21 @@ const ProjectRolesPage = ({ repository }: ProjectRolesPageProps) => {
             <List>
               {project.roles.map((role) => (
                 <ListItem
-                  key={role}
+                  key={role.name}
                   disableGutters
                   secondaryAction={
                     <Stack direction="row" spacing={1}>
                       <IconButton
-                        aria-label={`Edit role: ${role}`}
+                        aria-label={`Edit role: ${role.name}`}
                         onClick={() =>
-                          navigate(`/projects/${project.id}/roles/edit/${encodeURIComponent(role)}`)
+                          navigate(`/projects/${project.id}/roles/edit/${encodeURIComponent(role.name)}`)
                         }
                       >
                         <EditIcon />
                       </IconButton>
                       <IconButton
-                        aria-label={`Delete role: ${role}`}
-                        onClick={() => setRolePendingDeletion(role)}
+                        aria-label={`Delete role: ${role.name}`}
+                        onClick={() => setRolePendingDeletion(role.name)}
                       >
                         <DeleteIcon />
                       </IconButton>
@@ -141,7 +141,7 @@ const ProjectRolesPage = ({ repository }: ProjectRolesPageProps) => {
                   <ListItemIcon>
                     <GroupsIcon />
                   </ListItemIcon>
-                  <ListItemText primary={role} />
+                  <ListItemText primary={role.name} secondary={role.description || undefined} />
                 </ListItem>
               ))}
             </List>

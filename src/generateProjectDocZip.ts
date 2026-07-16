@@ -14,13 +14,15 @@ function toMarkdownListItem(value: string): string {
 }
 
 function buildReadme(project: Project): string {
-  const rolesList = project.roles.map(toMarkdownListItem).join('\n')
-  const useCasesList = project.useCases.map(toMarkdownListItem).join('\n')
+  const rolesList = project.roles.map((role) => toMarkdownListItem(role.name)).join('\n')
+  const useCasesList = project.useCases.map((useCase) => toMarkdownListItem(useCase.name)).join('\n')
   const dataDomainsList = project.dataDomains.map((d) => toMarkdownListItem(d.name)).join('\n')
+  const descriptionLines = project.description ? [project.description, ''] : []
 
   return [
     `# ${project.name}`,
     '',
+    ...descriptionLines,
     '## Roles',
     '',
     rolesList || '_No roles defined._',
@@ -36,12 +38,20 @@ function buildReadme(project: Project): string {
   ].join('\n')
 }
 
-function buildRoleDoc(role: string): string {
-  return [`# ${role}`, ''].join('\n')
+function buildRoleDoc(role: { name: string; description: string }): string {
+  const lines: string[] = [`# ${role.name}`, '']
+  if (role.description) {
+    lines.push(role.description, '')
+  }
+  return lines.join('\n')
 }
 
-function buildUseCaseDoc(useCase: string): string {
-  return [`# ${useCase}`, ''].join('\n')
+function buildUseCaseDoc(useCase: { name: string; description: string }): string {
+  const lines: string[] = [`# ${useCase.name}`, '']
+  if (useCase.description) {
+    lines.push(useCase.description, '')
+  }
+  return lines.join('\n')
 }
 
 function buildDataDomainDoc(domain: DataDomain): string {
@@ -59,12 +69,12 @@ export async function generateProjectDocZip(project: Project): Promise<ArrayBuff
   zip.file(`${projectSlug}/README.md`, buildReadme(project))
 
   project.roles.forEach((role, index) => {
-    const slug = toSlug(role) || `role-${index + 1}`
+    const slug = toSlug(role.name) || `role-${index + 1}`
     zip.file(`${projectSlug}/roles/${slug}.md`, buildRoleDoc(role))
   })
 
   project.useCases.forEach((useCase, index) => {
-    const slug = toSlug(useCase) || `use-case-${index + 1}`
+    const slug = toSlug(useCase.name) || `use-case-${index + 1}`
     zip.file(`${projectSlug}/use-cases/${slug}.md`, buildUseCaseDoc(useCase))
   })
 

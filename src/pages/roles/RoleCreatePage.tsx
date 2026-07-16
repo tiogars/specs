@@ -11,6 +11,7 @@ type RoleCreatePageProps = {
 
 type RoleFormValues = {
   role: string
+  description: string
 }
 
 const RoleCreatePage = ({ repository }: RoleCreatePageProps) => {
@@ -21,7 +22,7 @@ const RoleCreatePage = ({ repository }: RoleCreatePageProps) => {
   const [error, setError] = useState<string | null>(null)
 
   const { register, handleSubmit, formState } = useForm<RoleFormValues>({
-    defaultValues: { role: '' },
+    defaultValues: { role: '', description: '' },
   })
 
   useEffect(() => {
@@ -38,7 +39,7 @@ const RoleCreatePage = ({ repository }: RoleCreatePageProps) => {
     setIsSaving(true)
     setError(null)
     try {
-      const updated = await repository.addProjectRole(id, values.role.trim())
+      const updated = await repository.addProjectRole(id, values.role.trim(), values.description.trim())
       if (!updated) {
         setError('Unable to add role. Project may have been deleted.')
         return
@@ -64,6 +65,7 @@ const RoleCreatePage = ({ repository }: RoleCreatePageProps) => {
               error={Boolean(formState.errors.role)}
               helperText={formState.errors.role?.message}
             />
+            <TextField label="Role description" multiline minRows={2} {...register('description')} />
             <Stack direction="row" spacing={1}>
               <Button disabled={isSaving} type="submit" startIcon={<AddCircleIcon />} variant="contained">
                 Add role

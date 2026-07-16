@@ -12,6 +12,7 @@ type ProjectCreatePageProps = {
 
 type ProjectFormValues = {
   name: string
+  description: string
   roles: string
   useCases: string
 }
@@ -22,7 +23,7 @@ const ProjectCreatePage = ({ repository }: ProjectCreatePageProps) => {
   const [error, setError] = useState<string | null>(null)
 
   const { register, handleSubmit, formState } = useForm<ProjectFormValues>({
-    defaultValues: { name: '', roles: '', useCases: '' },
+    defaultValues: { name: '', description: '', roles: '', useCases: '' },
   })
 
   const onSubmit = handleSubmit(async (values) => {
@@ -32,6 +33,7 @@ const ProjectCreatePage = ({ repository }: ProjectCreatePageProps) => {
     try {
       const project = await repository.createProject({
         name: values.name.trim(),
+        description: values.description.trim(),
         roles: parseLines(values.roles),
         useCases: parseLines(values.useCases),
       })
@@ -56,6 +58,7 @@ const ProjectCreatePage = ({ repository }: ProjectCreatePageProps) => {
               error={Boolean(formState.errors.name)}
               helperText={formState.errors.name?.message}
             />
+            <TextField label="Project description" multiline minRows={2} {...register('description')} />
             <TextField
               label="Roles (one per line)"
               multiline
