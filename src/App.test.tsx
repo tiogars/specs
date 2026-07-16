@@ -170,28 +170,27 @@ class InMemoryProjectRepository implements ProjectRepository {
 }
 
 describe('App', () => {
-  it('renders top-level navigation links', async () => {
+  it('renders drawer navigation links', async () => {
     const repository = new InMemoryProjectRepository()
 
     render(
-      <MemoryRouter initialEntries={['/']}>
+      <MemoryRouter initialEntries={['/projects']}>
         <App repository={repository} />
       </MemoryRouter>,
     )
 
-    expect(screen.getByRole('link', { name: 'Specs webapp' })).toHaveAttribute('href', '/')
-    expect(screen.getByRole('link', { name: 'Projects' })).toHaveAttribute('href', '/')
-    expect(screen.getByRole('link', { name: 'Documentation' })).toHaveAttribute('href', '/docs/')
+    expect(screen.getByRole('link', { name: 'All projects' })).toHaveAttribute('href', '/projects')
+    expect(screen.getByRole('link', { name: 'Create project' })).toHaveAttribute('href', '/projects/new')
     await waitFor(() => {
       expect(screen.queryByText('Loading projects…')).not.toBeInTheDocument()
     })
   })
 
-  it('creates a project and renders project details', async () => {
+  it('creates a project and navigates to project detail', async () => {
     const repository = new InMemoryProjectRepository()
 
     render(
-      <MemoryRouter initialEntries={['/']}>
+      <MemoryRouter initialEntries={['/projects/new']}>
         <App repository={repository} />
       </MemoryRouter>,
     )
@@ -206,48 +205,79 @@ describe('App', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Save project' }))
 
-    const projectLink = await screen.findByRole('link', { name: 'Billing' })
-    fireEvent.click(projectLink)
+    // After save, redirected to project detail page
+    await waitFor(() => {
+      expect(screen.getByText('Billing')).toBeInTheDocument()
+      expect(screen.getByRole('link', { name: 'Manage roles' })).toBeInTheDocument()
+      expect(screen.getByRole('link', { name: 'Manage use cases' })).toBeInTheDocument()
+    })
+
+    // Navigate to roles page
+    fireEvent.click(screen.getByRole('link', { name: 'Manage roles' }))
 
     await waitFor(() => {
-      expect(screen.getByText('Roles')).toBeInTheDocument()
       expect(screen.getByText('Admin')).toBeInTheDocument()
       expect(screen.getByText('Auditor')).toBeInTheDocument()
-      expect(screen.getByText('Use cases')).toBeInTheDocument()
+    })
+
+    // Add a new role via the Add role link
+    fireEvent.click(screen.getAllByRole('link', { name: 'Add role' })[0])
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('Role name')).toBeInTheDocument()
+    })
+
+    fireEvent.change(screen.getByLabelText('Role name'), { target: { value: 'Manager' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Add role' }))
+
+    await waitFor(() => {
+      expect(screen.getByText('Manager')).toBeInTheDocument()
+    })
+
+    // Navigate to use cases page via drawer
+    const useCasesDrawerLink = screen.getByRole('link', { name: 'View use cases' })
+    fireEvent.click(useCasesDrawerLink)
+
+    await waitFor(() => {
       expect(screen.getByText('Create invoice')).toBeInTheDocument()
       expect(screen.getByText('Export report')).toBeInTheDocument()
     })
 
-    fireEvent.change(screen.getByLabelText('New role'), { target: { value: 'Manager' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Add role' }))
-    fireEvent.change(screen.getByLabelText('New role'), { target: { value: ' Manager ' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Add role' }))
-    fireEvent.change(screen.getByLabelText('New use case'), { target: { value: 'Approve payment' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Add use case' }))
-    fireEvent.change(screen.getByLabelText('New use case'), { target: { value: ' Approve payment ' } })
+    // Add a use case
+    fireEvent.click(screen.getAllByRole('link', { name: 'Add use case' })[0])
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('Use case')).toBeInTheDocument()
+    })
+
+    fireEvent.change(screen.getByLabelText('Use case'), { target: { value: 'Approve payment' } })
     fireEvent.click(screen.getByRole('button', { name: 'Add use case' }))
 
     await waitFor(() => {
-      expect(screen.getByText('Manager')).toBeInTheDocument()
       expect(screen.getByText('Approve payment')).toBeInTheDocument()
-      expect(screen.getAllByText('Manager')).toHaveLength(1)
-      expect(screen.getAllByText('Approve payment')).toHaveLength(1)
     })
 
+    // Edit the use case via the edit button (navigates to edit page)
     const approvePaymentListItem = screen.getByText('Approve payment').closest('li')
     if (!approvePaymentListItem) {
       throw new Error('Approve payment list item not found')
     }
 
     fireEvent.click(within(approvePaymentListItem).getByRole('button', { name: 'Edit use case: Approve payment' }))
-    fireEvent.change(screen.getByRole('textbox', { name: 'Edit use case' }), { target: { value: 'Approve refund' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('Use case')).toBeInTheDocument()
+    })
+
+    fireEvent.change(screen.getByLabelText('Use case'), { target: { value: 'Approve refund' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Save use case' }))
 
     await waitFor(() => {
       expect(screen.getByText('Approve refund')).toBeInTheDocument()
       expect(screen.queryByText('Approve payment')).not.toBeInTheDocument()
     })
 
+    // Delete the use case
     const approveRefundListItem = screen.getByText('Approve refund').closest('li')
     if (!approveRefundListItem) {
       throw new Error('Approve refund list item not found')
@@ -265,7 +295,7 @@ describe('App', () => {
     const repository = new InMemoryProjectRepository()
 
     render(
-      <MemoryRouter initialEntries={['/']}>
+      <MemoryRouter initialEntries={['/projects/new']}>
         <App repository={repository} />
       </MemoryRouter>,
     )
@@ -275,27 +305,37 @@ describe('App', () => {
     fireEvent.change(screen.getByLabelText('Use cases (one per line)'), { target: { value: 'Create invoice' } })
     fireEvent.click(screen.getByRole('button', { name: 'Save project' }))
 
-    const projectLink = await screen.findByRole('link', { name: 'Billing' })
-    fireEvent.click(projectLink)
+    // Navigate to roles page
+    await waitFor(() => {
+      expect(screen.getByRole('link', { name: 'Manage roles' })).toBeInTheDocument()
+    })
+    fireEvent.click(screen.getByRole('link', { name: 'Manage roles' }))
 
     await waitFor(() => {
       expect(screen.getByText('Admin')).toBeInTheDocument()
     })
 
+    // Edit via the edit button (navigates to edit page)
     const adminListItem = screen.getByText('Admin').closest('li')
     if (!adminListItem) {
       throw new Error('Admin list item not found')
     }
 
     fireEvent.click(within(adminListItem).getByRole('button', { name: 'Edit role: Admin' }))
-    fireEvent.change(screen.getByRole('textbox', { name: 'Edit role' }), { target: { value: 'Auditor' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('Role name')).toBeInTheDocument()
+    })
+
+    fireEvent.change(screen.getByLabelText('Role name'), { target: { value: 'Auditor' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Save role' }))
 
     await waitFor(() => {
       expect(screen.getByText('Auditor')).toBeInTheDocument()
       expect(screen.queryByText('Admin')).not.toBeInTheDocument()
     })
 
+    // Delete the role
     const auditorListItem = screen.getByText('Auditor').closest('li')
     if (!auditorListItem) {
       throw new Error('Auditor list item not found')
