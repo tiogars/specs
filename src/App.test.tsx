@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import App from './App'
-import type { CreateProjectInput, Project, ProjectRepository } from './projectRepository'
+import type { CreateProjectInput, DataDomain, Project, ProjectRepository } from './projectRepository'
 
 class InMemoryProjectRepository implements ProjectRepository {
   private projects: Project[] = []
@@ -169,16 +169,16 @@ class InMemoryProjectRepository implements ProjectRepository {
     return updatedProject
   }
 
-  async addProjectDataDomain(projectId: number, domain: string) {
+  async addProjectDataDomain(projectId: number, domain: string, description: string) {
     const project = this.projects.find((value) => value.id === projectId)
     if (!project) {
       return null
     }
 
     const normalizedDomain = this.normalizeAndValidateTextField(domain, 'Data domain')
-    const updatedProject = project.dataDomains.includes(normalizedDomain)
+    const updatedProject = project.dataDomains.some((d) => d.name === normalizedDomain)
       ? project
-      : { ...project, dataDomains: [...project.dataDomains, normalizedDomain] }
+      : { ...project, dataDomains: [...project.dataDomains, { name: normalizedDomain, description: description.trim() }] }
 
     if (updatedProject !== project) {
       this.projects = this.projects.map((value) => (value.id === projectId ? updatedProject : value))
@@ -187,7 +187,7 @@ class InMemoryProjectRepository implements ProjectRepository {
     return updatedProject
   }
 
-  async updateProjectDataDomain(projectId: number, currentDomain: string, nextDomain: string) {
+  async updateProjectDataDomain(projectId: number, currentDomain: string, nextDomain: string, nextDescription: string) {
     const project = this.projects.find((value) => value.id === projectId)
     if (!project) {
       return null
@@ -195,17 +195,17 @@ class InMemoryProjectRepository implements ProjectRepository {
 
     const normalizedCurrent = this.normalizeAndValidateTextField(currentDomain, 'Data domain')
     const normalizedNext = this.normalizeAndValidateTextField(nextDomain, 'Data domain')
-    const currentIndex = project.dataDomains.findIndex((value) => value === normalizedCurrent)
+    const currentIndex = project.dataDomains.findIndex((d) => d.name === normalizedCurrent)
     if (currentIndex < 0) {
       throw new Error('Data domain not found')
     }
 
-    if (normalizedCurrent !== normalizedNext && project.dataDomains.some((value) => value === normalizedNext)) {
+    if (normalizedCurrent !== normalizedNext && project.dataDomains.some((d) => d.name === normalizedNext)) {
       throw new Error('Data domain already exists')
     }
 
-    const updatedDomains = [...project.dataDomains]
-    updatedDomains[currentIndex] = normalizedNext
+    const updatedDomains: DataDomain[] = [...project.dataDomains]
+    updatedDomains[currentIndex] = { name: normalizedNext, description: nextDescription.trim() }
     const updatedProject = { ...project, dataDomains: updatedDomains }
     this.projects = this.projects.map((value) => (value.id === projectId ? updatedProject : value))
     return updatedProject
@@ -218,13 +218,13 @@ class InMemoryProjectRepository implements ProjectRepository {
     }
 
     const normalizedDomain = this.normalizeAndValidateTextField(domain, 'Data domain')
-    if (!project.dataDomains.includes(normalizedDomain)) {
+    if (!project.dataDomains.some((d) => d.name === normalizedDomain)) {
       throw new Error('Data domain not found')
     }
 
     const updatedProject = {
       ...project,
-      dataDomains: project.dataDomains.filter((value) => value !== normalizedDomain),
+      dataDomains: project.dataDomains.filter((d) => d.name !== normalizedDomain),
     }
     this.projects = this.projects.map((value) => (value.id === projectId ? updatedProject : value))
     return updatedProject

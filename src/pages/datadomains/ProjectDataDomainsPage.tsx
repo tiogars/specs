@@ -117,23 +117,23 @@ const ProjectDataDomainsPage = ({ repository }: ProjectDataDomainsPageProps) => 
             <List>
               {project.dataDomains.map((domain) => (
                 <ListItem
-                  key={domain}
+                  key={domain.name}
                   disableGutters
                   secondaryAction={
                     <Stack direction="row" spacing={1}>
                       <IconButton
-                        aria-label={`Edit data domain: ${domain}`}
+                        aria-label={`Edit data domain: ${domain.name}`}
                         onClick={() =>
                           navigate(
-                            `/projects/${project.id}/data-domains/edit/${encodeURIComponent(domain)}`,
+                            `/projects/${project.id}/data-domains/edit/${encodeURIComponent(domain.name)}`,
                           )
                         }
                       >
                         <EditIcon />
                       </IconButton>
                       <IconButton
-                        aria-label={`Delete data domain: ${domain}`}
-                        onClick={() => setDomainPendingDeletion(domain)}
+                        aria-label={`Delete data domain: ${domain.name}`}
+                        onClick={() => setDomainPendingDeletion(domain.name)}
                       >
                         <DeleteIcon />
                       </IconButton>
@@ -143,7 +143,7 @@ const ProjectDataDomainsPage = ({ repository }: ProjectDataDomainsPageProps) => 
                   <ListItemIcon>
                     <StorageIcon />
                   </ListItemIcon>
-                  <ListItemText primary={domain} />
+                  <ListItemText primary={domain.name} secondary={domain.description || undefined} />
                 </ListItem>
               ))}
             </List>

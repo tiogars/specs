@@ -1,12 +1,17 @@
 import { PGlite } from '@electric-sql/pglite'
 
+export type DataDomain = {
+  name: string
+  description: string
+}
+
 export type Project = {
   id: number
   name: string
   isDefault: boolean
   roles: string[]
   useCases: string[]
-  dataDomains: string[]
+  dataDomains: DataDomain[]
 }
 
 export type CreateProjectInput = {
@@ -25,8 +30,8 @@ export type ProjectRepository = {
   addProjectUseCase: (projectId: number, useCase: string) => Promise<Project | null>
   updateProjectUseCase: (projectId: number, currentUseCase: string, nextUseCase: string) => Promise<Project | null>
   removeProjectUseCase: (projectId: number, useCase: string) => Promise<Project | null>
-  addProjectDataDomain: (projectId: number, domain: string) => Promise<Project | null>
-  updateProjectDataDomain: (projectId: number, currentDomain: string, nextDomain: string) => Promise<Project | null>
+  addProjectDataDomain: (projectId: number, domain: string, description: string) => Promise<Project | null>
+  updateProjectDataDomain: (projectId: number, currentDomain: string, nextDomain: string, nextDescription: string) => Promise<Project | null>
   removeProjectDataDomain: (projectId: number, domain: string) => Promise<Project | null>
   getUseCaseDataDomains: (projectId: number, useCase: string) => Promise<string[]>
   addUseCaseDataDomain: (projectId: number, useCase: string, domain: string) => Promise<string[]>
@@ -171,6 +176,8 @@ async function getDatabase() {
           domain_value TEXT NOT NULL,
           UNIQUE (project_id, use_case_value, domain_value)
         );
+
+        ALTER TABLE project_data_domains ADD COLUMN IF NOT EXISTS description TEXT NOT NULL DEFAULT '';
       `)
       await seedDefaultProject(db)
       return db
@@ -180,7 +187,7 @@ async function getDatabase() {
   return dbPromise
 }
 
-async function readList(db: PGlite, table: 'project_roles' | 'project_use_cases' | 'project_data_domains', projectId: number) {
+async function readList(db: PGlite, table: 'project_roles' | 'project_use_cases', projectId: number) {
   const result = await db.query<DbValue>(
     `SELECT value FROM ${table} WHERE project_id = $1 ORDER BY id ASC`,
     [projectId],
@@ -189,11 +196,19 @@ async function readList(db: PGlite, table: 'project_roles' | 'project_use_cases'
   return result.rows.map((entry) => entry.value)
 }
 
+async function readDataDomains(db: PGlite, projectId: number): Promise<DataDomain[]> {
+  const result = await db.query<{ value: string; description: string }>(
+    'SELECT value, description FROM project_data_domains WHERE project_id = $1 ORDER BY id ASC',
+    [projectId],
+  )
+  return result.rows.map((row) => ({ name: row.value, description: row.description }))
+}
+
 async function hydrateProject(db: PGlite, project: DbProject): Promise<Project> {
   const [roles, useCases, dataDomains] = await Promise.all([
     readList(db, 'project_roles', project.id),
     readList(db, 'project_use_cases', project.id),
-    readList(db, 'project_data_domains', project.id),
+    readDataDomains(db, project.id),
   ])
 
   return {
@@ -421,7 +436,7 @@ export function createPgliteProjectRepository(): ProjectRepository {
       return hydrateProject(db, project.rows[0])
     },
 
-    async addProjectDataDomain(projectId, domain) {
+    async addProjectDataDomain(projectId, domain, description) {
       const db = await getDatabase()
       const project = await db.query<DbProject>('SELECT id, name, is_default FROM projects WHERE id = $1', [projectId])
       if (!project.rows[0]) {
@@ -429,22 +444,24 @@ export function createPgliteProjectRepository(): ProjectRepository {
       }
 
       const normalizedDomain = normalizeAndValidateTextField(domain, 'Data domain')
+      const normalizedDescription = description.trim()
       const existing = await db.query<{ id: number }>(
         'SELECT id FROM project_data_domains WHERE project_id = $1 AND value = $2 LIMIT 1',
         [projectId, normalizedDomain],
       )
 
       if (existing.rows.length === 0) {
-        await db.query('INSERT INTO project_data_domains (project_id, value) VALUES ($1, $2)', [
+        await db.query('INSERT INTO project_data_domains (project_id, value, description) VALUES ($1, $2, $3)', [
           projectId,
           normalizedDomain,
+          normalizedDescription,
         ])
       }
 
       return hydrateProject(db, project.rows[0])
     },
 
-    async updateProjectDataDomain(projectId, currentDomain, nextDomain) {
+    async updateProjectDataDomain(projectId, currentDomain, nextDomain, nextDescription) {
       const db = await getDatabase()
       const project = await db.query<DbProject>('SELECT id, name, is_default FROM projects WHERE id = $1', [projectId])
       if (!project.rows[0]) {
@@ -453,6 +470,7 @@ export function createPgliteProjectRepository(): ProjectRepository {
 
       const normalizedCurrent = normalizeAndValidateTextField(currentDomain, 'Data domain')
       const normalizedNext = normalizeAndValidateTextField(nextDomain, 'Data domain')
+      const normalizedDescription = nextDescription.trim()
 
       const currentRecord = await db.query<{ id: number }>(
         'SELECT id FROM project_data_domains WHERE project_id = $1 AND value = $2 LIMIT 1',
@@ -472,8 +490,9 @@ export function createPgliteProjectRepository(): ProjectRepository {
         }
       }
 
-      await db.query('UPDATE project_data_domains SET value = $1 WHERE id = $2', [
+      await db.query('UPDATE project_data_domains SET value = $1, description = $2 WHERE id = $3', [
         normalizedNext,
+        normalizedDescription,
         currentRecord.rows[0].id,
       ])
 

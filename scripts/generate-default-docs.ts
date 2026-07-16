@@ -22,6 +22,7 @@ const defaultProject = {
   isDefault: true,
   roles: DEFAULT_PROJECT_ROLES,
   useCases: DEFAULT_PROJECT_USE_CASES,
+  dataDomains: [],
 }
 
 const zipBuffer = await generateProjectDocZip(defaultProject)

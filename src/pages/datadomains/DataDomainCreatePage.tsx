@@ -11,6 +11,7 @@ type DataDomainCreatePageProps = {
 
 type DataDomainFormValues = {
   domain: string
+  description: string
 }
 
 const DataDomainCreatePage = ({ repository }: DataDomainCreatePageProps) => {
@@ -21,7 +22,7 @@ const DataDomainCreatePage = ({ repository }: DataDomainCreatePageProps) => {
   const [error, setError] = useState<string | null>(null)
 
   const { register, handleSubmit, formState } = useForm<DataDomainFormValues>({
-    defaultValues: { domain: '' },
+    defaultValues: { domain: '', description: '' },
   })
 
   useEffect(() => {
@@ -38,7 +39,7 @@ const DataDomainCreatePage = ({ repository }: DataDomainCreatePageProps) => {
     setIsSaving(true)
     setError(null)
     try {
-      const updated = await repository.addProjectDataDomain(id, values.domain.trim())
+      const updated = await repository.addProjectDataDomain(id, values.domain.trim(), values.description.trim())
       if (!updated) {
         setError('Unable to add data domain. Project may have been deleted.')
         return
@@ -63,6 +64,12 @@ const DataDomainCreatePage = ({ repository }: DataDomainCreatePageProps) => {
               {...register('domain', { required: 'Data domain is required' })}
               error={Boolean(formState.errors.domain)}
               helperText={formState.errors.domain?.message}
+            />
+            <TextField
+              label="Description"
+              multiline
+              minRows={2}
+              {...register('description')}
             />
             <Stack direction="row" spacing={1}>
               <Button disabled={isSaving} type="submit" startIcon={<AddCircleIcon />} variant="contained">

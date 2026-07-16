@@ -37,7 +37,7 @@ describe('generateProjectDocZip', () => {
     ])
   })
 
-  it('README.md lists roles and use cases', async () => {
+  it('README.md lists roles, use cases, and data domains', async () => {
     const zip = await generateProjectDocZip(baseProject)
     const files = await readZipFiles(zip)
     const readme = files['my-project/README.md']
@@ -49,6 +49,8 @@ describe('generateProjectDocZip', () => {
     expect(readme).toContain('## Use Cases')
     expect(readme).toContain('- Create invoice')
     expect(readme).toContain('- Export report')
+    expect(readme).toContain('## Data Domains')
+    expect(readme).toContain('_No data domains defined._')
   })
 
   it('role file contains a heading with the role name', async () => {
@@ -85,5 +87,63 @@ describe('generateProjectDocZip', () => {
     const files = await readZipFiles(zip)
 
     expect(Object.keys(files)).toContain('billing-payments/README.md')
+  })
+
+  it('generates data domain files in data-domains/ folder', async () => {
+    const project: Project = {
+      ...baseProject,
+      dataDomains: [
+        { name: 'Billing', description: 'Handles all billing related data.' },
+        { name: 'User Profile', description: '' },
+      ],
+    }
+    const zip = await generateProjectDocZip(project)
+    const files = await readZipFiles(zip)
+
+    expect(files['my-project/data-domains/billing.md']).toBeDefined()
+    expect(files['my-project/data-domains/user-profile.md']).toBeDefined()
+  })
+
+  it('data domain file starts with heading then description', async () => {
+    const project: Project = {
+      ...baseProject,
+      dataDomains: [{ name: 'Billing', description: 'Handles all billing related data.' }],
+    }
+    const zip = await generateProjectDocZip(project)
+    const files = await readZipFiles(zip)
+    const doc = files['my-project/data-domains/billing.md']
+
+    expect(doc).toContain('# Billing')
+    expect(doc).toContain('Handles all billing related data.')
+    expect(doc.indexOf('# Billing')).toBeLessThan(doc.indexOf('Handles all billing related data.'))
+  })
+
+  it('data domain file without description contains only heading', async () => {
+    const project: Project = {
+      ...baseProject,
+      dataDomains: [{ name: 'Inventory', description: '' }],
+    }
+    const zip = await generateProjectDocZip(project)
+    const files = await readZipFiles(zip)
+    const doc = files['my-project/data-domains/inventory.md']
+
+    expect(doc).toContain('# Inventory')
+    expect(doc.trim()).toBe('# Inventory')
+  })
+
+  it('README.md lists data domain names', async () => {
+    const project: Project = {
+      ...baseProject,
+      dataDomains: [
+        { name: 'Billing', description: 'Billing description.' },
+        { name: 'Inventory', description: '' },
+      ],
+    }
+    const zip = await generateProjectDocZip(project)
+    const files = await readZipFiles(zip)
+    const readme = files['my-project/README.md']
+
+    expect(readme).toContain('- Billing')
+    expect(readme).toContain('- Inventory')
   })
 })

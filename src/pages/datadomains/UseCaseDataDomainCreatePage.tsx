@@ -11,6 +11,7 @@ type UseCaseDataDomainCreatePageProps = {
 
 type FormValues = {
   domain: string
+  description: string
 }
 
 const UseCaseDataDomainCreatePage = ({ repository }: UseCaseDataDomainCreatePageProps) => {
@@ -24,7 +25,7 @@ const UseCaseDataDomainCreatePage = ({ repository }: UseCaseDataDomainCreatePage
   const id = Number(projectId)
 
   const { register, handleSubmit, formState } = useForm<FormValues>({
-    defaultValues: { domain: '' },
+    defaultValues: { domain: '', description: '' },
   })
 
   useEffect(() => {
@@ -40,8 +41,9 @@ const UseCaseDataDomainCreatePage = ({ repository }: UseCaseDataDomainCreatePage
     setError(null)
     try {
       const trimmed = values.domain.trim()
+      const description = values.description.trim()
       // Create the domain on the project, then link it to the use case
-      const updated = await repository.addProjectDataDomain(id, trimmed)
+      const updated = await repository.addProjectDataDomain(id, trimmed, description)
       if (!updated) {
         setError('Unable to create data domain. Project may have been deleted.')
         return
@@ -72,6 +74,12 @@ const UseCaseDataDomainCreatePage = ({ repository }: UseCaseDataDomainCreatePage
               {...register('domain', { required: 'Data domain is required' })}
               error={Boolean(formState.errors.domain)}
               helperText={formState.errors.domain?.message}
+            />
+            <TextField
+              label="Description"
+              multiline
+              minRows={2}
+              {...register('description')}
             />
             <Stack direction="row" spacing={1}>
               <Button disabled={isSaving} type="submit" startIcon={<AddCircleIcon />} variant="contained">
