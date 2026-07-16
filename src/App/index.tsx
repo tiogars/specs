@@ -1,10 +1,9 @@
 import { useMemo, useState } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
-import { AppBar, Box, IconButton, Toolbar, Typography, useMediaQuery, useTheme } from '@mui/material'
-import AutoStoriesIcon from '@mui/icons-material/AutoStories'
-import MenuIcon from '@mui/icons-material/Menu'
+import { Box, useMediaQuery, useTheme } from '@mui/material'
 import { createPgliteProjectRepository } from '../projectRepository'
 import AppDrawer, { DRAWER_WIDTH } from '../components/AppDrawer'
+import Header from '../components/Header'
 import ProjectsListPage from '../pages/projects/ProjectsListPage'
 import ProjectCreatePage from '../pages/projects/ProjectCreatePage'
 import ProjectDetailPage from '../pages/projects/ProjectDetailPage'
@@ -26,39 +25,12 @@ const App = ({ repository }: AppProps) => {
 
   return (
     <Box sx={{ display: 'flex' }}>
-      {isMobile && (
-        <AppBar
-          position="fixed"
-          sx={{ zIndex: theme.zIndex.drawer + 1 }}
-          color="transparent"
-          elevation={0}
-        >
-          <Toolbar>
-            <IconButton
-              edge="start"
-              color="inherit"
-              aria-label="open navigation menu"
-              onClick={() => setDrawerOpen(true)}
-              sx={{ mr: 1 }}
-            >
-              <MenuIcon />
-            </IconButton>
-            <Typography variant="h6" sx={{ flexGrow: 1 }}>
-              Specs
-            </Typography>
-            <IconButton
-              component="a"
-              href={docsHref}
-              target="_blank"
-              rel="noreferrer"
-              color="inherit"
-              aria-label="Documentation"
-            >
-              <AutoStoriesIcon />
-            </IconButton>
-          </Toolbar>
-        </AppBar>
-      )}
+      <Header
+        docsHref={docsHref}
+        repository={resolvedRepository}
+        showMenuButton={isMobile}
+        onMenuClick={() => setDrawerOpen(true)}
+      />
 
       <AppDrawer
         open={drawerOpen}
@@ -75,7 +47,8 @@ const App = ({ repository }: AppProps) => {
           display: 'flex',
           flexDirection: 'column',
           minHeight: '100vh',
-          ...(isMobile ? { mt: 8 } : { ml: `${DRAWER_WIDTH}px` }),
+          mt: 8,
+          ...(isMobile ? {} : { ml: `${DRAWER_WIDTH}px` }),
         }}
       >
         <Box sx={{ flexGrow: 1 }}>
