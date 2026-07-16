@@ -68,8 +68,8 @@ export async function generateProjectDocZip(project: Project): Promise<ArrayBuff
     zip.file(`${projectSlug}/use-cases/${slug}.md`, buildUseCaseDoc(useCase))
   })
 
-  project.dataDomains.forEach((domain, index) => {
-    const slug = toSlug(domain.name) || `data-domain-${index + 1}`
+  project.dataDomains.forEach((domain, domainIndex) => {
+    const slug = toSlug(domain.name) || `data-domain-${domainIndex + 1}`
     zip.file(`${projectSlug}/data-domains/${slug}.md`, buildDataDomainDoc(domain))
   })
 
