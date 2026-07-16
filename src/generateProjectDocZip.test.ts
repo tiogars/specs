@@ -6,9 +6,16 @@ import type { Project } from './projectRepository'
 const baseProject: Project = {
   id: 1,
   name: 'My Project',
+  description: 'My project description',
   isDefault: false,
-  roles: ['Admin', 'End User'],
-  useCases: ['Create invoice', 'Export report'],
+  roles: [
+    { name: 'Admin', description: 'Can administer the system.' },
+    { name: 'End User', description: '' },
+  ],
+  useCases: [
+    { name: 'Create invoice', description: 'Allows invoice creation.' },
+    { name: 'Export report', description: '' },
+  ],
   dataDomains: [],
 }
 
@@ -43,6 +50,7 @@ describe('generateProjectDocZip', () => {
     const readme = files['my-project/README.md']
 
     expect(readme).toContain('# My Project')
+    expect(readme).toContain('My project description')
     expect(readme).toContain('## Roles')
     expect(readme).toContain('- Admin')
     expect(readme).toContain('- End User')
@@ -53,20 +61,22 @@ describe('generateProjectDocZip', () => {
     expect(readme).toContain('_No data domains defined._')
   })
 
-  it('role file contains a heading with the role name', async () => {
+  it('role file contains a heading with the role name and description', async () => {
     const zip = await generateProjectDocZip(baseProject)
     const files = await readZipFiles(zip)
     const adminDoc = files['my-project/roles/admin.md']
 
     expect(adminDoc).toContain('# Admin')
+    expect(adminDoc).toContain('Can administer the system.')
   })
 
-  it('use case file contains a heading with the use case name', async () => {
+  it('use case file contains a heading with the use case name and description', async () => {
     const zip = await generateProjectDocZip(baseProject)
     const files = await readZipFiles(zip)
     const useCaseDoc = files['my-project/use-cases/create-invoice.md']
 
     expect(useCaseDoc).toContain('# Create invoice')
+    expect(useCaseDoc).toContain('Allows invoice creation.')
   })
 
   it('handles a project with no roles or use cases', async () => {

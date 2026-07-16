@@ -11,6 +11,7 @@ type UseCaseCreatePageProps = {
 
 type UseCaseFormValues = {
   useCase: string
+  description: string
 }
 
 const UseCaseCreatePage = ({ repository }: UseCaseCreatePageProps) => {
@@ -21,7 +22,7 @@ const UseCaseCreatePage = ({ repository }: UseCaseCreatePageProps) => {
   const [error, setError] = useState<string | null>(null)
 
   const { register, handleSubmit, formState } = useForm<UseCaseFormValues>({
-    defaultValues: { useCase: '' },
+    defaultValues: { useCase: '', description: '' },
   })
 
   useEffect(() => {
@@ -38,7 +39,7 @@ const UseCaseCreatePage = ({ repository }: UseCaseCreatePageProps) => {
     setIsSaving(true)
     setError(null)
     try {
-      const updated = await repository.addProjectUseCase(id, values.useCase.trim())
+      const updated = await repository.addProjectUseCase(id, values.useCase.trim(), values.description.trim())
       if (!updated) {
         setError('Unable to add use case. Project may have been deleted.')
         return
@@ -64,6 +65,7 @@ const UseCaseCreatePage = ({ repository }: UseCaseCreatePageProps) => {
               error={Boolean(formState.errors.useCase)}
               helperText={formState.errors.useCase?.message}
             />
+            <TextField label="Use case description" multiline minRows={2} {...register('description')} />
             <Stack direction="row" spacing={1}>
               <Button disabled={isSaving} type="submit" startIcon={<AddCircleIcon />} variant="contained">
                 Add use case

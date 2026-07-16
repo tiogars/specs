@@ -119,32 +119,32 @@ const ProjectUseCasesPage = ({ repository }: ProjectUseCasesPageProps) => {
             <List>
               {project.useCases.map((useCase) => (
                 <ListItem
-                  key={useCase}
+                  key={useCase.name}
                   disableGutters
                   secondaryAction={
                     <Stack direction="row" spacing={1}>
                       <Tooltip title="Manage data domains">
                         <IconButton
-                          aria-label={`Manage data domains for use case: ${useCase}`}
+                          aria-label={`Manage data domains for use case: ${useCase.name}`}
                           component={RouterLink}
-                          to={`/projects/${project.id}/use-cases/${encodeURIComponent(useCase)}/data-domains`}
+                          to={`/projects/${project.id}/use-cases/${encodeURIComponent(useCase.name)}/data-domains`}
                         >
                           <StorageIcon />
                         </IconButton>
                       </Tooltip>
                       <IconButton
-                        aria-label={`Edit use case: ${useCase}`}
+                        aria-label={`Edit use case: ${useCase.name}`}
                         onClick={() =>
                           navigate(
-                            `/projects/${project.id}/use-cases/edit/${encodeURIComponent(useCase)}`,
+                            `/projects/${project.id}/use-cases/edit/${encodeURIComponent(useCase.name)}`,
                           )
                         }
                       >
                         <EditIcon />
                       </IconButton>
                       <IconButton
-                        aria-label={`Delete use case: ${useCase}`}
-                        onClick={() => setUseCasePendingDeletion(useCase)}
+                        aria-label={`Delete use case: ${useCase.name}`}
+                        onClick={() => setUseCasePendingDeletion(useCase.name)}
                       >
                         <DeleteIcon />
                       </IconButton>
@@ -154,7 +154,7 @@ const ProjectUseCasesPage = ({ repository }: ProjectUseCasesPageProps) => {
                   <ListItemIcon>
                     <AutoStoriesIcon />
                   </ListItemIcon>
-                  <ListItemText primary={useCase} />
+                  <ListItemText primary={useCase.name} secondary={useCase.description || undefined} />
                 </ListItem>
               ))}
             </List>

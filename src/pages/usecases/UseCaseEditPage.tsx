@@ -11,6 +11,7 @@ type UseCaseEditPageProps = {
 
 type UseCaseFormValues = {
   useCase: string
+  description: string
 }
 
 const UseCaseEditPage = ({ repository }: UseCaseEditPageProps) => {
@@ -22,17 +23,23 @@ const UseCaseEditPage = ({ repository }: UseCaseEditPageProps) => {
 
   const decodedUseCase = ucValue ? decodeURIComponent(ucValue) : ''
 
-  const { register, handleSubmit, formState } = useForm<UseCaseFormValues>({
-    defaultValues: { useCase: decodedUseCase },
+  const { register, handleSubmit, formState, setValue } = useForm<UseCaseFormValues>({
+    defaultValues: { useCase: decodedUseCase, description: '' },
   })
 
   useEffect(() => {
     const id = Number(projectId)
     if (!Number.isFinite(id)) return
     repository.getProject(id).then((project) => {
-      if (project) setProjectName(project.name)
+      if (project) {
+        setProjectName(project.name)
+        const existingUseCase = project.useCases.find((useCase) => useCase.name === decodedUseCase)
+        if (existingUseCase) {
+          setValue('description', existingUseCase.description)
+        }
+      }
     })
-  }, [projectId, repository])
+  }, [projectId, repository, decodedUseCase, setValue])
 
   const onSubmit = handleSubmit(async (values) => {
     const id = Number(projectId)
@@ -40,7 +47,12 @@ const UseCaseEditPage = ({ repository }: UseCaseEditPageProps) => {
     setIsSaving(true)
     setError(null)
     try {
-      const updated = await repository.updateProjectUseCase(id, decodedUseCase, values.useCase.trim())
+      const updated = await repository.updateProjectUseCase(
+        id,
+        decodedUseCase,
+        values.useCase.trim(),
+        values.description.trim(),
+      )
       if (!updated) {
         setError('Unable to update use case. Project may have been deleted.')
         return
@@ -66,6 +78,7 @@ const UseCaseEditPage = ({ repository }: UseCaseEditPageProps) => {
               error={Boolean(formState.errors.useCase)}
               helperText={formState.errors.useCase?.message}
             />
+            <TextField label="Use case description" multiline minRows={2} {...register('description')} />
             <Stack direction="row" spacing={1}>
               <Button disabled={isSaving} type="submit" startIcon={<SaveIcon />} variant="contained">
                 Save use case

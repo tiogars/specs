@@ -19,9 +19,10 @@ const docsDir = path.join(repoRoot, 'docs')
 const defaultProject = {
   id: 1,
   name: DEFAULT_PROJECT_NAME,
+  description: '',
   isDefault: true,
-  roles: DEFAULT_PROJECT_ROLES,
-  useCases: DEFAULT_PROJECT_USE_CASES,
+  roles: DEFAULT_PROJECT_ROLES.map((name) => ({ name, description: '' })),
+  useCases: DEFAULT_PROJECT_USE_CASES.map((name) => ({ name, description: '' })),
   dataDomains: [],
 }
 

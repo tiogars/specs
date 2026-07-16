@@ -60,14 +60,21 @@ const ProjectsListPage = ({ repository }: ProjectsListPageProps) => {
         <Card key={project.id} variant="outlined">
           <CardContent>
             <Stack direction="row" spacing={2} sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
-              <Typography
-                component={RouterLink}
-                to={`/projects/${project.id}`}
-                sx={{ textDecoration: 'none' }}
-                variant="h6"
-              >
-                {project.name}
-              </Typography>
+              <Stack spacing={0.5}>
+                <Typography
+                  component={RouterLink}
+                  to={`/projects/${project.id}`}
+                  sx={{ textDecoration: 'none' }}
+                  variant="h6"
+                >
+                  {project.name}
+                </Typography>
+                {project.description ? (
+                  <Typography color="text.secondary" variant="body2">
+                    {project.description}
+                  </Typography>
+                ) : null}
+              </Stack>
               <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
                 {project.isDefault ? (
                   <Tooltip title="This project describes the webapp itself and is reset on each deploy">
