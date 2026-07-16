@@ -24,7 +24,7 @@ const UseCaseDataDomainLinkPage = ({ repository }: UseCaseDataDomainLinkPageProp
   const navigate = useNavigate()
   const [projectName, setProjectName] = useState('')
   const [availableDomains, setAvailableDomains] = useState<DataDomain[]>([])
-  const [linkedDomains, setLinkedDomains] = useState<string[]>([])
+  const [linkedDomains, setLinkedDomains] = useState<DataDomain[]>([])
   const [selectedDomain, setSelectedDomain] = useState('')
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -45,7 +45,7 @@ const UseCaseDataDomainLinkPage = ({ repository }: UseCaseDataDomainLinkPageProp
     )
   }, [id, decodedUseCase, repository])
 
-  const linkableDomains = availableDomains.filter((d) => !linkedDomains.includes(d.name))
+  const linkableDomains = availableDomains.filter((d) => !linkedDomains.some((ld) => ld.name === d.name))
 
   const handleLink = async () => {
     if (!selectedDomain) return

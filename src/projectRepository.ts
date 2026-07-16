@@ -33,9 +33,9 @@ export type ProjectRepository = {
   addProjectDataDomain: (projectId: number, domain: string, description: string) => Promise<Project | null>
   updateProjectDataDomain: (projectId: number, currentDomain: string, nextDomain: string, nextDescription: string) => Promise<Project | null>
   removeProjectDataDomain: (projectId: number, domain: string) => Promise<Project | null>
-  getUseCaseDataDomains: (projectId: number, useCase: string) => Promise<string[]>
-  addUseCaseDataDomain: (projectId: number, useCase: string, domain: string) => Promise<string[]>
-  removeUseCaseDataDomain: (projectId: number, useCase: string, domain: string) => Promise<string[]>
+  getUseCaseDataDomains: (projectId: number, useCase: string) => Promise<DataDomain[]>
+  addUseCaseDataDomain: (projectId: number, useCase: string, domain: string) => Promise<DataDomain[]>
+  removeUseCaseDataDomain: (projectId: number, useCase: string, domain: string) => Promise<DataDomain[]>
 }
 
 type DbProject = {
@@ -177,6 +177,9 @@ async function getDatabase() {
           UNIQUE (project_id, use_case_value, domain_value)
         );
 
+        // Adds the description column for existing databases; DEFAULT '' ensures backward-compatible
+        // migration without needing to back-fill rows — empty string is the correct default for
+        // a description that has never been set.
         ALTER TABLE project_data_domains ADD COLUMN IF NOT EXISTS description TEXT NOT NULL DEFAULT '';
       `)
       await seedDefaultProject(db)
@@ -533,11 +536,15 @@ export function createPgliteProjectRepository(): ProjectRepository {
 
     async getUseCaseDataDomains(projectId, useCase) {
       const db = await getDatabase()
-      const result = await db.query<{ domain_value: string }>(
-        'SELECT domain_value FROM use_case_data_domains WHERE project_id = $1 AND use_case_value = $2 ORDER BY id ASC',
+      const result = await db.query<{ domain_value: string; description: string }>(
+        `SELECT ucd.domain_value, COALESCE(pdd.description, '') AS description
+         FROM use_case_data_domains ucd
+         LEFT JOIN project_data_domains pdd ON pdd.project_id = ucd.project_id AND pdd.value = ucd.domain_value
+         WHERE ucd.project_id = $1 AND ucd.use_case_value = $2
+         ORDER BY ucd.id ASC`,
         [projectId, useCase],
       )
-      return result.rows.map((row) => row.domain_value)
+      return result.rows.map((row) => ({ name: row.domain_value, description: row.description }))
     },
 
     async addUseCaseDataDomain(projectId, useCase, domain) {
@@ -549,11 +556,15 @@ export function createPgliteProjectRepository(): ProjectRepository {
         [projectId, useCase, normalizedDomain],
       )
 
-      const result = await db.query<{ domain_value: string }>(
-        'SELECT domain_value FROM use_case_data_domains WHERE project_id = $1 AND use_case_value = $2 ORDER BY id ASC',
+      const result = await db.query<{ domain_value: string; description: string }>(
+        `SELECT ucd.domain_value, COALESCE(pdd.description, '') AS description
+         FROM use_case_data_domains ucd
+         LEFT JOIN project_data_domains pdd ON pdd.project_id = ucd.project_id AND pdd.value = ucd.domain_value
+         WHERE ucd.project_id = $1 AND ucd.use_case_value = $2
+         ORDER BY ucd.id ASC`,
         [projectId, useCase],
       )
-      return result.rows.map((row) => row.domain_value)
+      return result.rows.map((row) => ({ name: row.domain_value, description: row.description }))
     },
 
     async removeUseCaseDataDomain(projectId, useCase, domain) {
@@ -569,11 +580,15 @@ export function createPgliteProjectRepository(): ProjectRepository {
         throw new Error('Data domain link not found')
       }
 
-      const result = await db.query<{ domain_value: string }>(
-        'SELECT domain_value FROM use_case_data_domains WHERE project_id = $1 AND use_case_value = $2 ORDER BY id ASC',
+      const result = await db.query<{ domain_value: string; description: string }>(
+        `SELECT ucd.domain_value, COALESCE(pdd.description, '') AS description
+         FROM use_case_data_domains ucd
+         LEFT JOIN project_data_domains pdd ON pdd.project_id = ucd.project_id AND pdd.value = ucd.domain_value
+         WHERE ucd.project_id = $1 AND ucd.use_case_value = $2
+         ORDER BY ucd.id ASC`,
         [projectId, useCase],
       )
-      return result.rows.map((row) => row.domain_value)
+      return result.rows.map((row) => ({ name: row.domain_value, description: row.description }))
     },
   }
 }

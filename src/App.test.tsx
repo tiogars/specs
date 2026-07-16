@@ -230,7 +230,7 @@ class InMemoryProjectRepository implements ProjectRepository {
     return updatedProject
   }
 
-  private useCaseDomains: Map<string, string[]> = new Map()
+  private useCaseDomains: Map<string, DataDomain[]> = new Map()
 
   private useCaseDomainKey(projectId: number, useCase: string) {
     return `${projectId}::${useCase}`
@@ -243,8 +243,10 @@ class InMemoryProjectRepository implements ProjectRepository {
   async addUseCaseDataDomain(projectId: number, useCase: string, domain: string) {
     const key = this.useCaseDomainKey(projectId, useCase)
     const current = this.useCaseDomains.get(key) ?? []
-    if (!current.includes(domain)) {
-      this.useCaseDomains.set(key, [...current, domain])
+    if (!current.some((d) => d.name === domain)) {
+      const project = this.projects.find((p) => p.id === projectId)
+      const description = project?.dataDomains.find((d) => d.name === domain)?.description ?? ''
+      this.useCaseDomains.set(key, [...current, { name: domain, description }])
     }
     return this.useCaseDomains.get(key) ?? []
   }
@@ -252,10 +254,10 @@ class InMemoryProjectRepository implements ProjectRepository {
   async removeUseCaseDataDomain(projectId: number, useCase: string, domain: string) {
     const key = this.useCaseDomainKey(projectId, useCase)
     const current = this.useCaseDomains.get(key) ?? []
-    if (!current.includes(domain)) {
+    if (!current.some((d) => d.name === domain)) {
       throw new Error('Data domain link not found')
     }
-    const updated = current.filter((d) => d !== domain)
+    const updated = current.filter((d) => d.name !== domain)
     this.useCaseDomains.set(key, updated)
     return updated
   }

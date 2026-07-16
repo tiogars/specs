@@ -19,7 +19,7 @@ import {
 import AddCircleIcon from '@mui/icons-material/AddCircle'
 import DeleteIcon from '@mui/icons-material/Delete'
 import StorageIcon from '@mui/icons-material/Storage'
-import type { ProjectRepository } from '../../projectRepository'
+import type { DataDomain, ProjectRepository } from '../../projectRepository'
 
 type UseCaseDataDomainsPageProps = {
   repository: ProjectRepository
@@ -29,7 +29,7 @@ const UseCaseDataDomainsPage = ({ repository }: UseCaseDataDomainsPageProps) => 
   const { projectId, ucValue } = useParams()
   const [loading, setLoading] = useState(true)
   const [projectName, setProjectName] = useState('')
-  const [linkedDomains, setLinkedDomains] = useState<string[]>([])
+  const [linkedDomains, setLinkedDomains] = useState<DataDomain[]>([])
   const [projectNotFound, setProjectNotFound] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -134,12 +134,12 @@ const UseCaseDataDomainsPage = ({ repository }: UseCaseDataDomainsPageProps) => 
             <List>
               {linkedDomains.map((domain) => (
                 <ListItem
-                  key={domain}
+                  key={domain.name}
                   disableGutters
                   secondaryAction={
                     <IconButton
-                      aria-label={`Remove data domain link: ${domain}`}
-                      onClick={() => handleRemoveDomain(domain)}
+                      aria-label={`Remove data domain link: ${domain.name}`}
+                      onClick={() => handleRemoveDomain(domain.name)}
                     >
                       <DeleteIcon />
                     </IconButton>
@@ -148,7 +148,7 @@ const UseCaseDataDomainsPage = ({ repository }: UseCaseDataDomainsPageProps) => 
                   <ListItemIcon>
                     <StorageIcon />
                   </ListItemIcon>
-                  <ListItemText primary={domain} />
+                  <ListItemText primary={domain.name} secondary={domain.description || undefined} />
                 </ListItem>
               ))}
             </List>
