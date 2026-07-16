@@ -16,6 +16,9 @@ import UseCaseEditPage from '../pages/usecases/UseCaseEditPage'
 import ProjectDataDomainsPage from '../pages/datadomains/ProjectDataDomainsPage'
 import DataDomainCreatePage from '../pages/datadomains/DataDomainCreatePage'
 import DataDomainEditPage from '../pages/datadomains/DataDomainEditPage'
+import DataDomainAttributesPage from '../pages/datadomains/DataDomainAttributesPage'
+import DataDomainAttributeCreatePage from '../pages/datadomains/DataDomainAttributeCreatePage'
+import DataDomainAttributeEditPage from '../pages/datadomains/DataDomainAttributeEditPage'
 import UseCaseDataDomainsPage from '../pages/datadomains/UseCaseDataDomainsPage'
 import UseCaseDataDomainLinkPage from '../pages/datadomains/UseCaseDataDomainLinkPage'
 import UseCaseDataDomainCreatePage from '../pages/datadomains/UseCaseDataDomainCreatePage'
@@ -110,6 +113,18 @@ const App = ({ repository }: AppProps) => {
             <Route
               path="/projects/:projectId/data-domains/edit/:domainValue"
               element={<DataDomainEditPage repository={resolvedRepository} />}
+            />
+            <Route
+              path="/projects/:projectId/data-domains/:domainValue/attributes"
+              element={<DataDomainAttributesPage repository={resolvedRepository} />}
+            />
+            <Route
+              path="/projects/:projectId/data-domains/:domainValue/attributes/new"
+              element={<DataDomainAttributeCreatePage repository={resolvedRepository} />}
+            />
+            <Route
+              path="/projects/:projectId/data-domains/:domainValue/attributes/edit/:attributeValue"
+              element={<DataDomainAttributeEditPage repository={resolvedRepository} />}
             />
             <Route path="*" element={<Navigate to="/projects" replace />} />
           </Routes>
