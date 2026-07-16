@@ -33,9 +33,9 @@ const RoleEditPage = ({ repository }: RoleEditPageProps) => {
     repository.getProject(id).then((project) => {
       if (project) {
         setProjectName(project.name)
-        const currentRole = project.roles.find((role) => role.name === decodedRole)
-        if (currentRole) {
-          setValue('description', currentRole.description)
+        const existingRole = project.roles.find((role) => role.name === decodedRole)
+        if (existingRole) {
+          setValue('description', existingRole.description)
         }
       }
     })

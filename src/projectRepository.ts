@@ -72,6 +72,7 @@ type DbEntityValue = {
   description: string
 }
 
+// v4 includes project/role/use case description columns with backward-compatible empty-string defaults.
 const DEFAULT_PROJECT_SEED_VERSION = '4'
 
 export const DEFAULT_PROJECT_NAME = 'specs (default)'
@@ -290,7 +291,7 @@ export function createPgliteProjectRepository(): ProjectRepository {
       const db = await getDatabase()
       const result = await db.query<DbProject>(
         'INSERT INTO projects (name, description) VALUES ($1, $2) RETURNING id, name, description, is_default',
-        [input.name, input.description.trim()],
+        [input.name, (input.description || '').trim()],
       )
       const project = result.rows[0]
 

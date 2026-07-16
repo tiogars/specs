@@ -33,9 +33,9 @@ const UseCaseEditPage = ({ repository }: UseCaseEditPageProps) => {
     repository.getProject(id).then((project) => {
       if (project) {
         setProjectName(project.name)
-        const currentUseCase = project.useCases.find((useCase) => useCase.name === decodedUseCase)
-        if (currentUseCase) {
-          setValue('description', currentUseCase.description)
+        const existingUseCase = project.useCases.find((useCase) => useCase.name === decodedUseCase)
+        if (existingUseCase) {
+          setValue('description', existingUseCase.description)
         }
       }
     })
