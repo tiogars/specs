@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useMatch } from 'react-router-dom'
 import { AppBar, IconButton, MenuItem, Select, Toolbar, Tooltip, Typography, useScrollTrigger } from '@mui/material'
 import AutoStoriesIcon from '@mui/icons-material/AutoStories'
@@ -17,11 +17,16 @@ const Header = ({ docsHref, repository, showMenuButton = false, onMenuClick }: H
     let cancelled = false
     repository.listProjects().then((list) => {
       if (!cancelled) setProjects(list)
-    })
+    }).catch(() => {})
     return () => {
       cancelled = true
     }
   }, [repository])
+
+  const projectNamesById = useMemo(
+    () => new Map(projects.map((p) => [String(p.id), p.name])),
+    [projects],
+  )
 
   return (
     <AppBar position="fixed" color="default" elevation={trigger ? 4 : 0}>
@@ -50,8 +55,7 @@ const Header = ({ docsHref, repository, showMenuButton = false, onMenuClick }: H
           }}
           renderValue={(value) => {
             if (!value) return <em>Select project</em>
-            const project = projects.find((p) => String(p.id) === value)
-            return project?.name ?? value
+            return projectNamesById.get(value) ?? value
           }}
           sx={{ minWidth: 160, maxWidth: 300, flexGrow: 1, mr: 'auto' }}
           inputProps={{ 'aria-label': 'Select project' }}
