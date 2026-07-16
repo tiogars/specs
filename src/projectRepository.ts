@@ -177,9 +177,9 @@ async function getDatabase() {
           UNIQUE (project_id, use_case_value, domain_value)
         );
 
-        // Adds the description column for existing databases; DEFAULT '' ensures backward-compatible
-        // migration without needing to back-fill rows — empty string is the correct default for
-        // a description that has never been set.
+        -- Adds the description column for existing databases; DEFAULT '' ensures backward-compatible
+        -- migration without needing to back-fill rows — empty string is the correct default for
+        -- a description that has never been set.
         ALTER TABLE project_data_domains ADD COLUMN IF NOT EXISTS description TEXT NOT NULL DEFAULT '';
       `)
       await seedDefaultProject(db)
