@@ -4,10 +4,11 @@ import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
 const { version } = JSON.parse(readFileSync('./package.json', 'utf-8')) as { version: string }
+const basePath = '/'
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: '/specs/',
+  base: basePath,
   define: {
     __APP_VERSION__: JSON.stringify(version),
   },
@@ -18,7 +19,7 @@ export default defineConfig({
       includeAssets: ['vite.svg'],
       workbox: {
         maximumFileSizeToCacheInBytes: 12 * 1024 * 1024,
-        navigateFallbackDenylist: [/^\/specs\/docs\//],
+        navigateFallbackDenylist: [/^\/docs\//],
       },
       manifest: {
         name: 'Specs Builder',
@@ -27,11 +28,11 @@ export default defineConfig({
         theme_color: '#1976d2',
         background_color: '#ffffff',
         display: 'standalone',
-        start_url: '/specs/',
-        scope: '/specs/',
+        start_url: basePath,
+        scope: basePath,
         icons: [
           {
-            src: '/specs/vite.svg',
+            src: `${basePath}vite.svg`,
             sizes: 'any',
             type: 'image/svg+xml',
             purpose: 'any',
