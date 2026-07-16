@@ -1,6 +1,6 @@
 site_name: Specs Documentation
 site_description: Documentation generated from the Specs webapp workflow
-site_url: https://tiogars.github.io/specs/docs/
+site_url: https://specs.tiogars.fr/docs/
 repo_url: https://github.com/tiogars/specs
 
 theme:

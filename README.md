@@ -29,4 +29,5 @@ pnpm build
 
 ## Deployment
 
-- `.github/workflows/deploy-webapp.yml` builds the webapp, publishes it at the GitHub Pages root, and publishes MkDocs under `/docs`
+- `.github/workflows/deploy-webapp.yml` builds the webapp, writes the configured custom domain into the Pages artifact, and publishes MkDocs under `/docs`
+- deployed builds append the GitHub Actions run number and short commit SHA to the package version shown in the webapp footer
