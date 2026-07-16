@@ -14,6 +14,7 @@ import RoleEditPage from '../pages/roles/RoleEditPage'
 import ProjectUseCasesPage from '../pages/usecases/ProjectUseCasesPage'
 import UseCaseCreatePage from '../pages/usecases/UseCaseCreatePage'
 import UseCaseEditPage from '../pages/usecases/UseCaseEditPage'
+import Footer from '../components/Footer'
 import type { AppProps } from './App.types'
 
 const App = ({ repository }: AppProps) => {
@@ -71,40 +72,46 @@ const App = ({ repository }: AppProps) => {
           flexGrow: 1,
           p: 3,
           maxWidth: 'md',
+          display: 'flex',
+          flexDirection: 'column',
+          minHeight: '100vh',
           ...(isMobile ? { mt: 8 } : { ml: `${DRAWER_WIDTH}px` }),
         }}
       >
-        <Routes>
-          <Route path="/" element={<Navigate to="/projects" replace />} />
-          <Route path="/projects" element={<ProjectsListPage repository={resolvedRepository} />} />
-          <Route path="/projects/new" element={<ProjectCreatePage repository={resolvedRepository} />} />
-          <Route path="/projects/:projectId" element={<ProjectDetailPage repository={resolvedRepository} />} />
-          <Route
-            path="/projects/:projectId/roles"
-            element={<ProjectRolesPage repository={resolvedRepository} />}
-          />
-          <Route
-            path="/projects/:projectId/roles/new"
-            element={<RoleCreatePage repository={resolvedRepository} />}
-          />
-          <Route
-            path="/projects/:projectId/roles/edit/:roleValue"
-            element={<RoleEditPage repository={resolvedRepository} />}
-          />
-          <Route
-            path="/projects/:projectId/use-cases"
-            element={<ProjectUseCasesPage repository={resolvedRepository} />}
-          />
-          <Route
-            path="/projects/:projectId/use-cases/new"
-            element={<UseCaseCreatePage repository={resolvedRepository} />}
-          />
-          <Route
-            path="/projects/:projectId/use-cases/edit/:ucValue"
-            element={<UseCaseEditPage repository={resolvedRepository} />}
-          />
-          <Route path="*" element={<Navigate to="/projects" replace />} />
-        </Routes>
+        <Box sx={{ flexGrow: 1 }}>
+          <Routes>
+            <Route path="/" element={<Navigate to="/projects" replace />} />
+            <Route path="/projects" element={<ProjectsListPage repository={resolvedRepository} />} />
+            <Route path="/projects/new" element={<ProjectCreatePage repository={resolvedRepository} />} />
+            <Route path="/projects/:projectId" element={<ProjectDetailPage repository={resolvedRepository} />} />
+            <Route
+              path="/projects/:projectId/roles"
+              element={<ProjectRolesPage repository={resolvedRepository} />}
+            />
+            <Route
+              path="/projects/:projectId/roles/new"
+              element={<RoleCreatePage repository={resolvedRepository} />}
+            />
+            <Route
+              path="/projects/:projectId/roles/edit/:roleValue"
+              element={<RoleEditPage repository={resolvedRepository} />}
+            />
+            <Route
+              path="/projects/:projectId/use-cases"
+              element={<ProjectUseCasesPage repository={resolvedRepository} />}
+            />
+            <Route
+              path="/projects/:projectId/use-cases/new"
+              element={<UseCaseCreatePage repository={resolvedRepository} />}
+            />
+            <Route
+              path="/projects/:projectId/use-cases/edit/:ucValue"
+              element={<UseCaseEditPage repository={resolvedRepository} />}
+            />
+            <Route path="*" element={<Navigate to="/projects" replace />} />
+          </Routes>
+        </Box>
+        <Footer />
       </Box>
     </Box>
   )
