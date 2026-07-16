@@ -6,14 +6,23 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
 
 jobs:
-  deploy-pages:
+  build-pages:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v7
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v6
@@ -37,6 +46,12 @@ jobs:
       - name: Install MkDocs Material
         run: pip install mkdocs-material
 
+      - name: Compute app version
+        run: |
+          package_version="$(node -p "JSON.parse(require('node:fs').readFileSync('./package.json', 'utf8')).version")"
+          short_sha="${GITHUB_SHA::7}"
+          echo "APP_VERSION=${package_version}+${GITHUB_RUN_NUMBER}.${short_sha}" >> "$GITHUB_ENV"
+
       - name: Build webapp
         run: pnpm build
 
@@ -48,9 +63,18 @@ jobs:
           [ -d dist ] || { echo "Validation failed: dist directory not found after the webapp build. Check the webapp build step output above for errors."; exit 1; }
           mkdocs build --strict --site-dir dist/docs
 
-      # Publish the entire dist directory atomically so the app root and /docs stay in sync.
-      - name: Deploy app and docs to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v4
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./dist
+          path: ./dist
+
+  deploy-pages:
+    runs-on: ubuntu-latest
+    needs: build-pages
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy app and docs to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

@@ -4,13 +4,14 @@ import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
 const { version } = JSON.parse(readFileSync('./package.json', 'utf-8')) as { version: string }
+const appVersion = process.env.APP_VERSION?.trim() || version
 const basePath = '/'
 
 // https://vite.dev/config/
 export default defineConfig({
   base: basePath,
   define: {
-    __APP_VERSION__: JSON.stringify(version),
+    __APP_VERSION__: JSON.stringify(appVersion),
   },
   plugins: [
     react(),

@@ -181,6 +181,7 @@ describe('App', () => {
 
     expect(screen.getByRole('link', { name: 'All projects' })).toHaveAttribute('href', '/projects')
     expect(screen.getByRole('link', { name: 'Create project' })).toHaveAttribute('href', '/projects/new')
+    expect(screen.getByText(/Specs Builder — v/)).toBeInTheDocument()
     await waitFor(() => {
       expect(screen.queryByText('Loading projects…')).not.toBeInTheDocument()
     })
