@@ -44,7 +44,7 @@ jobs:
           python-version: '3.12'
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --trust-lockfile
 
       - name: Install MkDocs Material
         run: pip install mkdocs-material
