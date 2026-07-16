@@ -236,6 +236,14 @@ async function getDatabase() {
   return dbPromise
 }
 
+async function readDataDomainAttributeList(db: PGlite, projectId: number, domainValue: string): Promise<DataDomainAttribute[]> {
+  const result = await db.query<{ value: string; description: string }>(
+    'SELECT value, description FROM data_domain_attributes WHERE project_id = $1 AND domain_value = $2 ORDER BY id ASC',
+    [projectId, domainValue],
+  )
+  return result.rows.map((row) => ({ name: row.value, description: row.description }))
+}
+
 async function readList(db: PGlite, table: 'project_roles' | 'project_use_cases', projectId: number) {
   const result = await db.query<DbEntityValue>(
     `SELECT value, description FROM ${table} WHERE project_id = $1 ORDER BY id ASC`,
@@ -690,11 +698,7 @@ export function createPgliteProjectRepository(): ProjectRepository {
 
     async getDataDomainAttributes(projectId, domainValue) {
       const db = await getDatabase()
-      const result = await db.query<{ value: string; description: string }>(
-        'SELECT value, description FROM data_domain_attributes WHERE project_id = $1 AND domain_value = $2 ORDER BY id ASC',
-        [projectId, domainValue],
-      )
-      return result.rows.map((row) => ({ name: row.value, description: row.description }))
+      return readDataDomainAttributeList(db, projectId, domainValue)
     },
 
     async addDataDomainAttribute(projectId, domainValue, attribute, description = '') {
@@ -712,11 +716,7 @@ export function createPgliteProjectRepository(): ProjectRepository {
         )
       }
 
-      const result = await db.query<{ value: string; description: string }>(
-        'SELECT value, description FROM data_domain_attributes WHERE project_id = $1 AND domain_value = $2 ORDER BY id ASC',
-        [projectId, domainValue],
-      )
-      return result.rows.map((row) => ({ name: row.value, description: row.description }))
+      return readDataDomainAttributeList(db, projectId, domainValue)
     },
 
     async updateDataDomainAttribute(projectId, domainValue, currentAttribute, nextAttribute, nextDescription = '') {
@@ -748,11 +748,7 @@ export function createPgliteProjectRepository(): ProjectRepository {
         currentRecord.rows[0].id,
       ])
 
-      const result = await db.query<{ value: string; description: string }>(
-        'SELECT value, description FROM data_domain_attributes WHERE project_id = $1 AND domain_value = $2 ORDER BY id ASC',
-        [projectId, domainValue],
-      )
-      return result.rows.map((row) => ({ name: row.value, description: row.description }))
+      return readDataDomainAttributeList(db, projectId, domainValue)
     },
 
     async removeDataDomainAttribute(projectId, domainValue, attribute) {
@@ -768,11 +764,7 @@ export function createPgliteProjectRepository(): ProjectRepository {
         throw new Error('Attribute not found')
       }
 
-      const result = await db.query<{ value: string; description: string }>(
-        'SELECT value, description FROM data_domain_attributes WHERE project_id = $1 AND domain_value = $2 ORDER BY id ASC',
-        [projectId, domainValue],
-      )
-      return result.rows.map((row) => ({ name: row.value, description: row.description }))
+      return readDataDomainAttributeList(db, projectId, domainValue)
     },
   }
 }
