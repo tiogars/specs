@@ -45,7 +45,7 @@ const UseCaseDataDomainLinkPage = ({ repository }: UseCaseDataDomainLinkPageProp
     )
   }, [id, decodedUseCase, repository])
 
-  const unlinkableDomains = availableDomains.filter((d) => !linkedDomains.includes(d))
+  const linkableDomains = availableDomains.filter((d) => !linkedDomains.includes(d))
 
   const handleLink = async () => {
     if (!selectedDomain) return
@@ -73,7 +73,7 @@ const UseCaseDataDomainLinkPage = ({ repository }: UseCaseDataDomainLinkPageProp
       <Card>
         <CardContent>
           <Stack spacing={2}>
-            {unlinkableDomains.length === 0 ? (
+            {linkableDomains.length === 0 ? (
               <Typography color="text.secondary">
                 All project data domains are already linked to this use case, or no data domains exist.{' '}
                 <RouterLink to={`/projects/${projectId}/use-cases/${ucValue}/data-domains/new`}>
@@ -91,7 +91,7 @@ const UseCaseDataDomainLinkPage = ({ repository }: UseCaseDataDomainLinkPageProp
                     value={selectedDomain}
                     onChange={(e) => setSelectedDomain(e.target.value)}
                   >
-                    {unlinkableDomains.map((domain) => (
+                    {linkableDomains.map((domain) => (
                       <MenuItem key={domain} value={domain}>
                         {domain}
                       </MenuItem>
