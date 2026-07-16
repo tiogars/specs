@@ -17,6 +17,7 @@ import AutoStoriesIcon from '@mui/icons-material/AutoStories'
 import FolderIcon from '@mui/icons-material/Folder'
 import GroupsIcon from '@mui/icons-material/Groups'
 import ListIcon from '@mui/icons-material/List'
+import StorageIcon from '@mui/icons-material/Storage'
 
 export const DRAWER_WIDTH = 240
 
@@ -85,6 +86,25 @@ const AppDrawer = ({ open, onClose, variant }: AppDrawerProps) => {
           label: 'Add use case',
           icon: <AddCircleIcon />,
           to: projectId ? `/projects/${projectId}/use-cases/new` : '/projects',
+          disabled: !projectId,
+          disabledReason: 'Select a project first',
+        },
+      ],
+    },
+    {
+      title: 'Data domains',
+      items: [
+        {
+          label: 'View data domains',
+          icon: <StorageIcon />,
+          to: projectId ? `/projects/${projectId}/data-domains` : '/projects',
+          disabled: !projectId,
+          disabledReason: 'Select a project first',
+        },
+        {
+          label: 'Add data domain',
+          icon: <AddCircleIcon />,
+          to: projectId ? `/projects/${projectId}/data-domains/new` : '/projects',
           disabled: !projectId,
           disabledReason: 'Select a project first',
         },

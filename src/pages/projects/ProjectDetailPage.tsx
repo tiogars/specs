@@ -14,6 +14,7 @@ import {
 import AutoStoriesIcon from '@mui/icons-material/AutoStories'
 import DownloadIcon from '@mui/icons-material/Download'
 import GroupsIcon from '@mui/icons-material/Groups'
+import StorageIcon from '@mui/icons-material/Storage'
 import type { ProjectRepository } from '../../projectRepository'
 import { generateProjectDocZip, toSlug } from '../../generateProjectDocZip'
 
@@ -145,6 +146,31 @@ const ProjectDetailPage = ({ repository }: ProjectDetailPageProps) => {
                 variant="contained"
               >
                 Manage use cases
+              </Button>
+            </Stack>
+          </CardContent>
+        </Card>
+
+        <Card variant="outlined" sx={{ flex: 1 }}>
+          <CardContent>
+            <Stack spacing={2}>
+              <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+                <StorageIcon color="action" />
+                <Typography variant="h6">Data domains</Typography>
+              </Stack>
+              <Chip
+                color="info"
+                label={`${project.dataDomains.length} data domains`}
+                size="small"
+                sx={{ alignSelf: 'flex-start' }}
+              />
+              <Button
+                component={RouterLink}
+                to={`/projects/${project.id}/data-domains`}
+                size="small"
+                variant="contained"
+              >
+                Manage data domains
               </Button>
             </Stack>
           </CardContent>

@@ -17,27 +17,25 @@ import {
   ListItemIcon,
   ListItemText,
   Stack,
-  Tooltip,
   Typography,
 } from '@mui/material'
 import AddCircleIcon from '@mui/icons-material/AddCircle'
-import AutoStoriesIcon from '@mui/icons-material/AutoStories'
 import DeleteIcon from '@mui/icons-material/Delete'
 import EditIcon from '@mui/icons-material/Edit'
 import StorageIcon from '@mui/icons-material/Storage'
 import type { ProjectRepository } from '../../projectRepository'
 
-type ProjectUseCasesPageProps = {
+type ProjectDataDomainsPageProps = {
   repository: ProjectRepository
 }
 
-const ProjectUseCasesPage = ({ repository }: ProjectUseCasesPageProps) => {
+const ProjectDataDomainsPage = ({ repository }: ProjectDataDomainsPageProps) => {
   const { projectId } = useParams()
   const navigate = useNavigate()
   const [loading, setLoading] = useState(true)
   const [project, setProject] = useState<Awaited<ReturnType<ProjectRepository['getProject']>>>(null)
   const [error, setError] = useState<string | null>(null)
-  const [useCasePendingDeletion, setUseCasePendingDeletion] = useState<string | null>(null)
+  const [domainPendingDeletion, setDomainPendingDeletion] = useState<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -79,17 +77,17 @@ const ProjectUseCasesPage = ({ repository }: ProjectUseCasesPageProps) => {
     )
   }
 
-  const handleConfirmDeleteUseCase = async () => {
-    if (!useCasePendingDeletion) return
+  const handleConfirmDeleteDomain = async () => {
+    if (!domainPendingDeletion) return
     setError(null)
     try {
-      const updated = await repository.removeProjectUseCase(project.id, useCasePendingDeletion)
+      const updated = await repository.removeProjectDataDomain(project.id, domainPendingDeletion)
       if (!updated) {
-        setError('Unable to delete use case. Project may have been deleted.')
+        setError('Unable to delete data domain. Project may have been deleted.')
         return
       }
       setProject(updated)
-      setUseCasePendingDeletion(null)
+      setDomainPendingDeletion(null)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unable to update this project.')
     }
@@ -98,14 +96,14 @@ const ProjectUseCasesPage = ({ repository }: ProjectUseCasesPageProps) => {
   return (
     <Stack spacing={3}>
       <Stack direction="row" spacing={2} sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
-        <Typography variant="h4">Use cases — {project.name}</Typography>
+        <Typography variant="h4">Data domains — {project.name}</Typography>
         <Button
           component={RouterLink}
-          to={`/projects/${project.id}/use-cases/new`}
+          to={`/projects/${project.id}/data-domains/new`}
           startIcon={<AddCircleIcon />}
           variant="contained"
         >
-          Add use case
+          Add data domain
         </Button>
       </Stack>
 
@@ -113,38 +111,29 @@ const ProjectUseCasesPage = ({ repository }: ProjectUseCasesPageProps) => {
 
       <Card>
         <CardContent>
-          {project.useCases.length === 0 ? (
-            <Typography color="text.secondary">No use cases yet. Add your first use case above.</Typography>
+          {project.dataDomains.length === 0 ? (
+            <Typography color="text.secondary">No data domains yet. Add your first data domain above.</Typography>
           ) : (
             <List>
-              {project.useCases.map((useCase) => (
+              {project.dataDomains.map((domain) => (
                 <ListItem
-                  key={useCase}
+                  key={domain}
                   disableGutters
                   secondaryAction={
                     <Stack direction="row" spacing={1}>
-                      <Tooltip title="Manage data domains">
-                        <IconButton
-                          aria-label={`Manage data domains for use case: ${useCase}`}
-                          component={RouterLink}
-                          to={`/projects/${project.id}/use-cases/${encodeURIComponent(useCase)}/data-domains`}
-                        >
-                          <StorageIcon />
-                        </IconButton>
-                      </Tooltip>
                       <IconButton
-                        aria-label={`Edit use case: ${useCase}`}
+                        aria-label={`Edit data domain: ${domain}`}
                         onClick={() =>
                           navigate(
-                            `/projects/${project.id}/use-cases/edit/${encodeURIComponent(useCase)}`,
+                            `/projects/${project.id}/data-domains/edit/${encodeURIComponent(domain)}`,
                           )
                         }
                       >
                         <EditIcon />
                       </IconButton>
                       <IconButton
-                        aria-label={`Delete use case: ${useCase}`}
-                        onClick={() => setUseCasePendingDeletion(useCase)}
+                        aria-label={`Delete data domain: ${domain}`}
+                        onClick={() => setDomainPendingDeletion(domain)}
                       >
                         <DeleteIcon />
                       </IconButton>
@@ -152,9 +141,9 @@ const ProjectUseCasesPage = ({ repository }: ProjectUseCasesPageProps) => {
                   }
                 >
                   <ListItemIcon>
-                    <AutoStoriesIcon />
+                    <StorageIcon />
                   </ListItemIcon>
-                  <ListItemText primary={useCase} />
+                  <ListItemText primary={domain} />
                 </ListItem>
               ))}
             </List>
@@ -162,17 +151,17 @@ const ProjectUseCasesPage = ({ repository }: ProjectUseCasesPageProps) => {
         </CardContent>
       </Card>
 
-      <Dialog open={Boolean(useCasePendingDeletion)} onClose={() => setUseCasePendingDeletion(null)}>
-        <DialogTitle>Delete use case</DialogTitle>
+      <Dialog open={Boolean(domainPendingDeletion)} onClose={() => setDomainPendingDeletion(null)}>
+        <DialogTitle>Delete data domain</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            {`Are you sure you want to delete "${useCasePendingDeletion}" from this project?`}
+            {`Are you sure you want to delete "${domainPendingDeletion}" from this project? It will also be removed from any linked use cases.`}
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setUseCasePendingDeletion(null)}>Cancel</Button>
-          <Button color="error" onClick={handleConfirmDeleteUseCase} variant="contained">
-            Confirm delete use case
+          <Button onClick={() => setDomainPendingDeletion(null)}>Cancel</Button>
+          <Button color="error" onClick={handleConfirmDeleteDomain} variant="contained">
+            Confirm delete data domain
           </Button>
         </DialogActions>
       </Dialog>
@@ -180,4 +169,4 @@ const ProjectUseCasesPage = ({ repository }: ProjectUseCasesPageProps) => {
   )
 }
 
-export default ProjectUseCasesPage
+export default ProjectDataDomainsPage

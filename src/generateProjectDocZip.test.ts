@@ -9,6 +9,7 @@ const baseProject: Project = {
   isDefault: false,
   roles: ['Admin', 'End User'],
   useCases: ['Create invoice', 'Export report'],
+  dataDomains: [],
 }
 
 async function readZipFiles(zip: ArrayBuffer): Promise<Record<string, string>> {
