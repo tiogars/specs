@@ -22,6 +22,7 @@ import {
 import AddCircleIcon from '@mui/icons-material/AddCircle'
 import DeleteIcon from '@mui/icons-material/Delete'
 import EditIcon from '@mui/icons-material/Edit'
+import LabelIcon from '@mui/icons-material/Label'
 import StorageIcon from '@mui/icons-material/Storage'
 import type { ProjectRepository } from '../../projectRepository'
 
@@ -121,6 +122,16 @@ const ProjectDataDomainsPage = ({ repository }: ProjectDataDomainsPageProps) => 
                   disableGutters
                   secondaryAction={
                     <Stack direction="row" spacing={1}>
+                      <IconButton
+                        aria-label={`Manage attributes for data domain: ${domain.name}`}
+                        onClick={() =>
+                          navigate(
+                            `/projects/${project.id}/data-domains/${encodeURIComponent(domain.name)}/attributes`,
+                          )
+                        }
+                      >
+                        <LabelIcon />
+                      </IconButton>
                       <IconButton
                         aria-label={`Edit data domain: ${domain.name}`}
                         onClick={() =>
