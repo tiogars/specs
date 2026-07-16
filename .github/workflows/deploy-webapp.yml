@@ -52,13 +52,9 @@ jobs:
       - name: Compute app version
         run: |
           package_version="$(jq -r '.version' package.json)"
-          [[ ${#GITHUB_SHA} -ge 7 ]] || {
-            echo "GITHUB_SHA is shorter than 7 characters: $GITHUB_SHA"
-            exit 1
-          }
           short_sha="${GITHUB_SHA::7}"
           app_version="${package_version}+${GITHUB_RUN_NUMBER}.${short_sha}"
-          [[ "$app_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+\+[0-9]+\.[0-9a-f]{7}$ ]] || {
+          [[ "$app_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+([-.][0-9A-Za-z.-]+)?\+[0-9]+\.[0-9a-f]{7}$ ]] || {
             echo "Computed APP_VERSION has an invalid format: $app_version"
             exit 1
           }
@@ -76,7 +72,7 @@ jobs:
           mkdocs build --strict --site-dir dist/docs
 
       - name: Add custom domain
-        run: printf '%s' "$CUSTOM_DOMAIN" > dist/CNAME
+        run: printf '%s\n' "$CUSTOM_DOMAIN" > dist/CNAME
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v4
