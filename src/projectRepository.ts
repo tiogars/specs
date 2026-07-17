@@ -81,8 +81,8 @@ type DbEntityValue = {
   description: string
 }
 
-// v4 includes project/role/use case description columns with backward-compatible empty-string defaults.
-const DEFAULT_PROJECT_SEED_VERSION = '4'
+// v5 adds data domain and data domain attribute seed data.
+const DEFAULT_PROJECT_SEED_VERSION = '5'
 
 export const DEFAULT_PROJECT_NAME = 'specs (default)'
 
@@ -104,10 +104,29 @@ export const DEFAULT_PROJECT_USE_CASES = [
   'View saved data domains',
   'Add a data domain to a use case',
   'Create a data domain then add to a use case',
+  'Add a data domain attribute',
+  'Edit a data domain attribute',
+  'Delete a data domain attribute',
   'Download documentation as ZIP',
   'Use the app offline (PWA)',
   'Deploy app to GitHub Pages',
 ]
+
+export const DEFAULT_PROJECT_DATA_DOMAINS = [
+  'Project',
+  'Role',
+  'Use Case',
+  'Data Domain',
+  'Data Domain Attribute',
+]
+
+export const DEFAULT_PROJECT_DATA_DOMAIN_ATTRIBUTES: Record<string, string[]> = {
+  'Project': ['id', 'name', 'description', 'is_default'],
+  'Role': ['name', 'description'],
+  'Use Case': ['name', 'description'],
+  'Data Domain': ['name', 'description'],
+  'Data Domain Attribute': ['name', 'description'],
+}
 
 const ALLOWED_VALUE_TABLES = ['project_roles', 'project_use_cases', 'project_data_domains'] as const
 type ValueTable = (typeof ALLOWED_VALUE_TABLES)[number]
@@ -123,6 +142,25 @@ async function batchInsertValues(db: PGlite, table: ValueTable, projectId: numbe
     return `($${index * 2 + 1}, $${index * 2 + 2})`
   })
   await db.query(`INSERT INTO ${table} (project_id, value) VALUES ${placeholders.join(', ')}`, params)
+}
+
+async function batchInsertDataDomainAttributes(
+  db: PGlite,
+  projectId: number,
+  attributes: Record<string, string[]>,
+) {
+  for (const [domainValue, values] of Object.entries(attributes)) {
+    if (values.length === 0) continue
+    const params: (number | string)[] = []
+    const placeholders = values.map((value, index) => {
+      params.push(projectId, domainValue, value)
+      return `($${index * 3 + 1}, $${index * 3 + 2}, $${index * 3 + 3})`
+    })
+    await db.query(
+      `INSERT INTO data_domain_attributes (project_id, domain_value, value) VALUES ${placeholders.join(', ')}`,
+      params,
+    )
+  }
 }
 
 async function seedDefaultProject(db: PGlite) {
@@ -145,6 +183,11 @@ async function seedDefaultProject(db: PGlite) {
     projectId = defaultProject.id
     await db.query('DELETE FROM project_roles WHERE project_id = $1', [projectId])
     await db.query('DELETE FROM project_use_cases WHERE project_id = $1', [projectId])
+    // use_case_data_domains and data_domain_attributes reference projects(id), not
+    // project_data_domains(id), so they must be deleted explicitly before re-seeding.
+    await db.query('DELETE FROM data_domain_attributes WHERE project_id = $1', [projectId])
+    await db.query('DELETE FROM use_case_data_domains WHERE project_id = $1', [projectId])
+    await db.query('DELETE FROM project_data_domains WHERE project_id = $1', [projectId])
   } else {
     const insertResult = await db.query<{ id: number }>(
       'INSERT INTO projects (name, is_default) VALUES ($1, TRUE) RETURNING id',
@@ -159,6 +202,8 @@ async function seedDefaultProject(db: PGlite) {
 
   await batchInsertValues(db, 'project_roles', projectId, DEFAULT_PROJECT_ROLES)
   await batchInsertValues(db, 'project_use_cases', projectId, DEFAULT_PROJECT_USE_CASES)
+  await batchInsertValues(db, 'project_data_domains', projectId, DEFAULT_PROJECT_DATA_DOMAINS)
+  await batchInsertDataDomainAttributes(db, projectId, DEFAULT_PROJECT_DATA_DOMAIN_ATTRIBUTES)
 
   await db.query(
     "INSERT INTO metadata (key, value) VALUES ('default_project_seed_version', $1) ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value",
