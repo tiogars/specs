@@ -28,9 +28,9 @@ const defaultProject = {
   name: DEFAULT_PROJECT_NAME,
   description: '',
   isDefault: true,
-  roles: DEFAULT_PROJECT_ROLES.map((name) => ({ name, description: '' })),
-  useCases: DEFAULT_PROJECT_USE_CASES.map((name) => ({ name, description: '' })),
-  dataDomains: DEFAULT_PROJECT_DATA_DOMAINS.map((name) => ({ name, description: '' })),
+  roles: DEFAULT_PROJECT_ROLES,
+  useCases: DEFAULT_PROJECT_USE_CASES,
+  dataDomains: DEFAULT_PROJECT_DATA_DOMAINS,
 }
 
 const zipBuffer = await generateProjectDocZip(defaultProject)
@@ -61,8 +61,8 @@ function appendListSection(content: string, heading: string, values: string[], e
 }
 
 for (const useCase of DEFAULT_PROJECT_USE_CASES) {
-  const relatedDataDomains = DEFAULT_PROJECT_USE_CASE_DATA_DOMAINS[useCase] ?? []
-  const relativePath = path.join('use-cases', `${toSlug(useCase)}.md`)
+  const relatedDataDomains = DEFAULT_PROJECT_USE_CASE_DATA_DOMAINS[useCase.name] ?? []
+  const relativePath = path.join('use-cases', `${toSlug(useCase.name)}.md`)
   const fullPath = path.join(docsDir, relativePath)
   if (!fs.existsSync(fullPath)) continue
 
@@ -75,8 +75,8 @@ for (const useCase of DEFAULT_PROJECT_USE_CASES) {
 }
 
 for (const dataDomain of DEFAULT_PROJECT_DATA_DOMAINS) {
-  const attributes = DEFAULT_PROJECT_DATA_DOMAIN_ATTRIBUTES[dataDomain] ?? []
-  const relativePath = path.join('data-domains', `${toSlug(dataDomain)}.md`)
+  const attributes = (DEFAULT_PROJECT_DATA_DOMAIN_ATTRIBUTES[dataDomain.name] ?? []).map((a) => a.name)
+  const relativePath = path.join('data-domains', `${toSlug(dataDomain.name)}.md`)
   const fullPath = path.join(docsDir, relativePath)
   if (!fs.existsSync(fullPath)) continue
 
