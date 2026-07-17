@@ -24,4 +24,5 @@ A collection of roles, use cases, and data domains that define an application sp
 - [Add a use case to a project](../../use-cases/add-a-use-case-to-a-project/)
 - [Edit a use case in a project](../../use-cases/edit-a-use-case-in-a-project/)
 - [Delete a use case from a project](../../use-cases/delete-a-use-case-from-a-project/)
+- [Add a actionType to a use case](../../use-cases/add-a-actiontype-to-a-use-case/)
 - [Download documentation as ZIP](../../use-cases/download-documentation-as-zip/)

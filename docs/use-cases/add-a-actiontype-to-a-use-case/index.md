@@ -1,13 +1,14 @@
-# Add a data domain to a use case
+# Add a actionType to a use case
 
 ## Goal
 
-Link an existing data domain to a use case
+Link an existing action type to a use case
 
 ## Related Data Domains
 
-- [Data Domain](../../data-domains/data-domain/): A logical grouping of related data with typed attributes
+- [Project](../../data-domains/project/): A collection of roles, use cases, and data domains that define an application specification
 - [Use Case](../../data-domains/use-case/): A specific interaction or workflow performed by one or more roles
+- [Action Type](../../data-domains/action-type/): A reusable action category with description and acceptance criteria set
 
 ## Related Roles
 

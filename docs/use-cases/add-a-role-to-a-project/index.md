@@ -13,6 +13,10 @@ Assign a new actor or user type to the project
 
 - [End User](../../roles/end-user/): A person who uses the app to create and manage project specifications
 
+## Related Action Types
+
+- [Add or Link](../../action-types/add-or-link/): Associates existing entities together without duplicating data.
+
 ## Suggested Acceptance Criteria
 
 - The user can create or link the target entity with valid input.

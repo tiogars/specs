@@ -41,6 +41,7 @@ describe('default project repository fixtures', () => {
     expect(roleNames).toEqual(['End User', 'Developer', 'DevOps Engineer'])
     expect(DEFAULT_PROJECT_USE_CASE_ROLES['Deploy app to GitHub Pages']).toEqual(['DevOps Engineer'])
     expect(DEFAULT_PROJECT_USE_CASE_DATA_DOMAINS['Download documentation as ZIP']).toEqual(['Project'])
+    expect(DEFAULT_PROJECT_USE_CASE_ACTION_TYPES['Create an actionType']).toEqual(['Create'])
     expect(DEFAULT_PROJECT_ACTION_TYPES.length).toBeGreaterThan(0)
   })
 })

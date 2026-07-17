@@ -1,12 +1,12 @@
-# View saved data domains
+# View saved actionTypes
 
 ## Goal
 
-Browse all data domains defined in the project
+Browse all action types defined in the project
 
 ## Related Data Domains
 
-- [Data Domain](../../data-domains/data-domain/): A logical grouping of related data with typed attributes
+- [Action Type](../../data-domains/action-type/): A reusable action category with description and acceptance criteria set
 
 ## Related Roles
 

@@ -12,6 +12,10 @@ Browse and open previously created projects
 
 - [End User](../../roles/end-user/): A person who uses the app to create and manage project specifications
 
+## Related Action Types
+
+- [View](../../action-types/view/): Presents existing entities in list or detail pages.
+
 ## Suggested Acceptance Criteria
 
 - The user can open the relevant listing or detail page from navigation.

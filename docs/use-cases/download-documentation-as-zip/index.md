@@ -12,6 +12,10 @@ Export the full project specification as a ZIP archive of markdown files
 
 - [End User](../../roles/end-user/): A person who uses the app to create and manage project specifications
 
+## Related Action Types
+
+- [Download Documentation](../../action-types/download-documentation/): Exports project documentation as a ZIP package.
+
 ## Suggested Acceptance Criteria
 
 - The generated ZIP downloads successfully from the project detail page.

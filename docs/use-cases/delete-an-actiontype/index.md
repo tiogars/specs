@@ -1,13 +1,12 @@
-# Delete a role from a project
+# Delete an actionType
 
 ## Goal
 
-Remove a role that is no longer needed
+Remove an action type that is no longer needed
 
 ## Related Data Domains
 
-- [Project](../../data-domains/project/): A collection of roles, use cases, and data domains that define an application specification
-- [Role](../../data-domains/role/): An actor or user type that participates in use cases
+- [Action Type](../../data-domains/action-type/): A reusable action category with description and acceptance criteria set
 
 ## Related Roles
 

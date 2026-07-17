@@ -1,12 +1,12 @@
-# Create a project
+# Create an actionType
 
 ## Goal
 
-Create a new project with a name, description, roles, and use cases
+Create a new action type with description and acceptance criteria
 
 ## Related Data Domains
 
-- [Project](../../data-domains/project/): A collection of roles, use cases, and data domains that define an application specification
+- [Action Type](../../data-domains/action-type/): A reusable action category with description and acceptance criteria set
 
 ## Related Roles
 

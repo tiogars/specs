@@ -12,6 +12,10 @@ _No related data domains defined._
 
 - [End User](../../roles/end-user/): A person who uses the app to create and manage project specifications
 
+## Related Action Types
+
+- [Offline/PWA](../../action-types/offline-pwa/): Supports installable and offline-capable app behavior.
+
 ## Suggested Acceptance Criteria
 
 - The application can be installed as a PWA in a supported browser.

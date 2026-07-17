@@ -12,6 +12,10 @@ Remove a data domain and its attributes
 
 - [End User](../../roles/end-user/): A person who uses the app to create and manage project specifications
 
+## Related Action Types
+
+- [Delete](../../action-types/delete/): Removes an existing entity or relationship with safeguards.
+
 ## Suggested Acceptance Criteria
 
 - A confirmation step prevents accidental deletion.

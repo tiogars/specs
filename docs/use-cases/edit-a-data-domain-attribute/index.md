@@ -13,6 +13,10 @@ Rename or update the description of a data domain attribute
 
 - [End User](../../roles/end-user/): A person who uses the app to create and manage project specifications
 
+## Related Action Types
+
+- [Edit](../../action-types/edit/): Updates existing entities while preserving valid references.
+
 ## Suggested Acceptance Criteria
 
 - The target entity can be updated with validated input.

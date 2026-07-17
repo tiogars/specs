@@ -22,6 +22,11 @@ nav:
       - 'Add a use case to a project': use-cases/add-a-use-case-to-a-project/index.md
       - 'Edit a use case in a project': use-cases/edit-a-use-case-in-a-project/index.md
       - 'Delete a use case from a project': use-cases/delete-a-use-case-from-a-project/index.md
+      - 'Create an actionType': use-cases/create-an-actiontype/index.md
+      - 'Edit an actionType': use-cases/edit-an-actiontype/index.md
+      - 'Delete an actionType': use-cases/delete-an-actiontype/index.md
+      - 'View saved actionTypes': use-cases/view-saved-actiontypes/index.md
+      - 'Add a actionType to a use case': use-cases/add-a-actiontype-to-a-use-case/index.md
       - 'Create a data domain': use-cases/create-a-data-domain/index.md
       - 'Edit a data domain': use-cases/edit-a-data-domain/index.md
       - 'Delete a data domain': use-cases/delete-a-data-domain/index.md
@@ -35,9 +40,19 @@ nav:
       - 'Download documentation as ZIP': use-cases/download-documentation-as-zip/index.md
       - 'Use the app offline (PWA)': use-cases/use-the-app-offline-pwa/index.md
       - 'Deploy app to GitHub Pages': use-cases/deploy-app-to-github-pages/index.md
+  - Action Types:
+      - 'Create': action-types/create/index.md
+      - 'Add or Link': action-types/add-or-link/index.md
+      - 'Edit': action-types/edit/index.md
+      - 'Delete': action-types/delete/index.md
+      - 'View': action-types/view/index.md
+      - 'Deploy': action-types/deploy/index.md
+      - 'Offline/PWA': action-types/offline-pwa/index.md
+      - 'Download Documentation': action-types/download-documentation/index.md
   - Data Domains:
       - 'Project': data-domains/project/index.md
       - 'Role': data-domains/role/index.md
       - 'Use Case': data-domains/use-case/index.md
+      - 'Action Type': data-domains/action-type/index.md
       - 'Data Domain': data-domains/data-domain/index.md
       - 'Data Domain Attribute': data-domains/data-domain-attribute/index.md

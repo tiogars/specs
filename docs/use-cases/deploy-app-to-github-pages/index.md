@@ -12,6 +12,10 @@ _No related data domains defined._
 
 - [DevOps Engineer](../../roles/devops-engineer/): An engineer responsible for deployment, infrastructure, and CI/CD pipelines
 
+## Related Action Types
+
+- [Deploy](../../action-types/deploy/): Publishes the app and generated docs to the hosting platform.
+
 ## Suggested Acceptance Criteria
 
 - The deployment workflow completes without errors.

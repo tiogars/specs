@@ -1,12 +1,12 @@
-# Edit a data domain
+# Edit an actionType
 
 ## Goal
 
-Rename or update the description of a data domain
+Update an existing action type details and acceptance criteria
 
 ## Related Data Domains
 
-- [Data Domain](../../data-domains/data-domain/): A logical grouping of related data with typed attributes
+- [Action Type](../../data-domains/action-type/): A reusable action category with description and acceptance criteria set
 
 ## Related Roles
 
