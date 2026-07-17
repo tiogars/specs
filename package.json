@@ -9,7 +9,8 @@
     "lint": "oxlint",
     "preview": "vite preview",
     "test": "vitest",
-    "test:run": "vitest run"
+    "test:run": "vitest run",
+    "docs:generate": "node --experimental-strip-types scripts/generate-default-docs.ts"
   },
   "dependencies": {
     "@electric-sql/pglite": "0.5.4",
