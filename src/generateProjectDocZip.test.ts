@@ -39,6 +39,7 @@ describe('generateProjectDocZip', () => {
 
     expect(Object.keys(files).sort()).toEqual([
       'my-project/index.md',
+      'my-project/mkdocs.yml',
       'my-project/roles/admin/index.md',
       'my-project/roles/end-user/index.md',
       'my-project/use-cases/create-invoice/index.md',
@@ -89,7 +90,7 @@ describe('generateProjectDocZip', () => {
     const zip = await generateProjectDocZip(project)
     const files = await readZipFiles(zip)
 
-    expect(Object.keys(files)).toEqual(['my-project/index.md'])
+    expect(Object.keys(files).sort()).toEqual(['my-project/index.md', 'my-project/mkdocs.yml'])
 
     const indexDoc = files['my-project/index.md']
     expect(indexDoc).toContain('_No roles defined._')
@@ -102,6 +103,25 @@ describe('generateProjectDocZip', () => {
     const files = await readZipFiles(zip)
 
     expect(Object.keys(files)).toContain('billing-payments/index.md')
+    expect(Object.keys(files)).toContain('billing-payments/mkdocs.yml')
+  })
+
+  it('includes mkdocs.yml with nav entries for generated content', async () => {
+    const project: Project = {
+      ...baseProject,
+      dataDomains: [{ name: 'Billing', description: 'Billing description.' }],
+      useCaseDataDomains: { 'Create invoice': ['Billing'] },
+    }
+    const zip = await generateProjectDocZip(project)
+    const files = await readZipFiles(zip)
+    const mkdocs = files['my-project/mkdocs.yml']
+
+    expect(mkdocs).toContain("site_name: 'My Project' Documentation")
+    expect(mkdocs).toContain("site_description: 'My project description'")
+    expect(mkdocs).toContain('  - Home: index.md')
+    expect(mkdocs).toContain("      - 'Admin': roles/admin/index.md")
+    expect(mkdocs).toContain("      - 'Create invoice': use-cases/create-invoice/index.md")
+    expect(mkdocs).toContain("      - 'Billing': data-domains/billing/index.md")
   })
 
   it('generates data domain files in data-domains/ folder', async () => {

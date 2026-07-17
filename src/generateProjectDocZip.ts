@@ -22,6 +22,70 @@ function withFallback(value: string, fallback: string): string {
   return trimmed || fallback
 }
 
+function toYamlSingleQuoted(value: string): string {
+  return `'${value.replace(/'/g, "''")}'`
+}
+
+type MkdocsConfigOptions = {
+  siteName?: string
+  siteDescription?: string
+  siteUrl?: string
+  repoUrl?: string
+}
+
+export function buildMkdocsConfig(project: Project, options: MkdocsConfigOptions = {}): string {
+  const siteName = withFallback(options.siteName ?? `${withFallback(project.name, 'Project')} Documentation`, 'Project Documentation')
+  const siteDescription = withFallback(
+    options.siteDescription ?? project.description,
+    'Documentation generated from the web app workflow.',
+  )
+  const lines: string[] = [
+    `site_name: ${toYamlSingleQuoted(siteName)}`,
+    `site_description: ${toYamlSingleQuoted(siteDescription)}`,
+  ]
+
+  if (options.siteUrl) {
+    lines.push(`site_url: ${options.siteUrl}`)
+  }
+
+  if (options.repoUrl) {
+    lines.push(`repo_url: ${options.repoUrl}`)
+  }
+
+  lines.push(
+    '',
+    'theme:',
+    '  name: material',
+    '',
+    'nav:',
+    '  - Home: index.md',
+  )
+
+  if (project.roles.length > 0) {
+    lines.push('  - Roles:')
+    for (const role of project.roles) {
+      lines.push(`      - ${toYamlSingleQuoted(role.name)}: roles/${toSlug(role.name) || 'role'}/index.md`)
+    }
+  }
+
+  if (project.useCases.length > 0) {
+    lines.push('  - Use Cases:')
+    for (const useCase of project.useCases) {
+      lines.push(`      - ${toYamlSingleQuoted(useCase.name)}: use-cases/${toSlug(useCase.name) || 'use-case'}/index.md`)
+    }
+  }
+
+  if (project.dataDomains.length > 0) {
+    lines.push('  - Data Domains:')
+    for (const domain of project.dataDomains) {
+      lines.push(`      - ${toYamlSingleQuoted(domain.name)}: data-domains/${toSlug(domain.name) || 'data-domain'}/index.md`)
+    }
+  }
+
+  lines.push('')
+  return lines.join('\n')
+}
+
 function buildAcceptanceCriteria(useCaseName: string): string[] {
   const normalized = useCaseName.trim().toLowerCase()
 
@@ -228,6 +292,7 @@ export async function generateProjectDocZip(project: Project): Promise<ArrayBuff
   const zip = new JSZip()
 
   zip.file(`${projectSlug}/index.md`, buildReadme(project))
+  zip.file(`${projectSlug}/mkdocs.yml`, buildMkdocsConfig(project))
 
   project.roles.forEach((role, index) => {
     const slug = toSlug(role.name) || `role-${index + 1}`
