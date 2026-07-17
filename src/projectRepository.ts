@@ -81,51 +81,72 @@ type DbEntityValue = {
   description: string
 }
 
-// v6 adds use-case → data-domain link seed data.
-const DEFAULT_PROJECT_SEED_VERSION = '6'
+// v7 adds descriptions to seeded roles, use cases, data domains, and data domain attributes.
+const DEFAULT_PROJECT_SEED_VERSION = '7'
 
 export const DEFAULT_PROJECT_NAME = 'specs (default)'
 
-export const DEFAULT_PROJECT_ROLES = ['End User', 'Developer', 'DevOps Engineer']
-
-export const DEFAULT_PROJECT_USE_CASES = [
-  'Create a project',
-  'View saved projects',
-  'Add a role to a project',
-  'Edit a role in a project',
-  'Delete a role from a project',
-  'Add a use case to a project',
-  'Edit a use case in a project',
-  'Delete a use case from a project',
-  'Create a data domain',
-  'Edit a data domain',
-  'Delete a data domain',
-  'View a data domain',
-  'View saved data domains',
-  'Add a data domain to a use case',
-  'Create a data domain then add to a use case',
-  'Add a data domain attribute',
-  'Edit a data domain attribute',
-  'Delete a data domain attribute',
-  'Download documentation as ZIP',
-  'Use the app offline (PWA)',
-  'Deploy app to GitHub Pages',
+export const DEFAULT_PROJECT_ROLES: { name: string; description: string }[] = [
+  { name: 'End User', description: 'A person who uses the app to create and manage project specifications' },
+  { name: 'Developer', description: 'A software developer who builds and maintains the application' },
+  { name: 'DevOps Engineer', description: 'An engineer responsible for deployment, infrastructure, and CI/CD pipelines' },
 ]
 
-export const DEFAULT_PROJECT_DATA_DOMAINS = [
-  'Project',
-  'Role',
-  'Use Case',
-  'Data Domain',
-  'Data Domain Attribute',
+export const DEFAULT_PROJECT_USE_CASES: { name: string; description: string }[] = [
+  { name: 'Create a project', description: 'Create a new project with a name, description, roles, and use cases' },
+  { name: 'View saved projects', description: 'Browse and open previously created projects' },
+  { name: 'Add a role to a project', description: 'Assign a new actor or user type to the project' },
+  { name: 'Edit a role in a project', description: 'Rename or update the description of an existing role' },
+  { name: 'Delete a role from a project', description: 'Remove a role that is no longer needed' },
+  { name: 'Add a use case to a project', description: 'Define a new interaction or workflow for the project' },
+  { name: 'Edit a use case in a project', description: 'Rename or update the description of an existing use case' },
+  { name: 'Delete a use case from a project', description: 'Remove a use case that is no longer relevant' },
+  { name: 'Create a data domain', description: 'Define a new logical grouping of related data' },
+  { name: 'Edit a data domain', description: 'Rename or update the description of a data domain' },
+  { name: 'Delete a data domain', description: 'Remove a data domain and its attributes' },
+  { name: 'View a data domain', description: 'Inspect the details and attributes of a data domain' },
+  { name: 'View saved data domains', description: 'Browse all data domains defined in the project' },
+  { name: 'Add a data domain to a use case', description: 'Link an existing data domain to a use case' },
+  { name: 'Create a data domain then add to a use case', description: 'Create a new data domain and immediately link it to a use case' },
+  { name: 'Add a data domain attribute', description: 'Define a new property for a data domain' },
+  { name: 'Edit a data domain attribute', description: 'Rename or update the description of a data domain attribute' },
+  { name: 'Delete a data domain attribute', description: 'Remove a property from a data domain' },
+  { name: 'Download documentation as ZIP', description: 'Export the full project specification as a ZIP archive of markdown files' },
+  { name: 'Use the app offline (PWA)', description: 'Install and use the application without an internet connection' },
+  { name: 'Deploy app to GitHub Pages', description: 'Publish the application to GitHub Pages via CI/CD' },
 ]
 
-export const DEFAULT_PROJECT_DATA_DOMAIN_ATTRIBUTES: Record<string, string[]> = {
-  'Project': ['id', 'name', 'description', 'is_default'],
-  'Role': ['name', 'description'],
-  'Use Case': ['name', 'description'],
-  'Data Domain': ['name', 'description'],
-  'Data Domain Attribute': ['name', 'description'],
+export const DEFAULT_PROJECT_DATA_DOMAINS: { name: string; description: string }[] = [
+  { name: 'Project', description: 'A collection of roles, use cases, and data domains that define an application specification' },
+  { name: 'Role', description: 'An actor or user type that participates in use cases' },
+  { name: 'Use Case', description: 'A specific interaction or workflow performed by one or more roles' },
+  { name: 'Data Domain', description: 'A logical grouping of related data with typed attributes' },
+  { name: 'Data Domain Attribute', description: 'A named property of a data domain with an optional description' },
+]
+
+export const DEFAULT_PROJECT_DATA_DOMAIN_ATTRIBUTES: Record<string, { name: string; description: string }[]> = {
+  'Project': [
+    { name: 'id', description: 'Unique identifier for the project' },
+    { name: 'name', description: 'Human-readable project name' },
+    { name: 'description', description: 'Optional description of the project' },
+    { name: 'is_default', description: 'Whether this is the pre-seeded default project' },
+  ],
+  'Role': [
+    { name: 'name', description: 'The role\'s display name' },
+    { name: 'description', description: 'Optional description of the role' },
+  ],
+  'Use Case': [
+    { name: 'name', description: 'The use case\'s display name' },
+    { name: 'description', description: 'Optional description of the use case' },
+  ],
+  'Data Domain': [
+    { name: 'name', description: 'The data domain\'s display name' },
+    { name: 'description', description: 'Optional description of the data domain' },
+  ],
+  'Data Domain Attribute': [
+    { name: 'name', description: 'The attribute\'s display name' },
+    { name: 'description', description: 'Optional description of the attribute' },
+  ],
 }
 
 export const DEFAULT_PROJECT_USE_CASE_DATA_DOMAINS: Record<string, string[]> = {
@@ -153,33 +174,33 @@ export const DEFAULT_PROJECT_USE_CASE_DATA_DOMAINS: Record<string, string[]> = {
 const ALLOWED_VALUE_TABLES = ['project_roles', 'project_use_cases', 'project_data_domains'] as const
 type ValueTable = (typeof ALLOWED_VALUE_TABLES)[number]
 
-async function batchInsertValues(db: PGlite, table: ValueTable, projectId: number, values: string[]) {
+async function batchInsertValues(db: PGlite, table: ValueTable, projectId: number, values: { name: string; description: string }[]) {
   if (values.length === 0) return
   if (!ALLOWED_VALUE_TABLES.includes(table)) {
     throw new Error(`Invalid table: ${table}`)
   }
   const params: (number | string)[] = []
-  const placeholders = values.map((value, index) => {
-    params.push(projectId, value)
-    return `($${index * 2 + 1}, $${index * 2 + 2})`
+  const placeholders = values.map((entry, index) => {
+    params.push(projectId, entry.name, entry.description)
+    return `($${index * 3 + 1}, $${index * 3 + 2}, $${index * 3 + 3})`
   })
-  await db.query(`INSERT INTO ${table} (project_id, value) VALUES ${placeholders.join(', ')}`, params)
+  await db.query(`INSERT INTO ${table} (project_id, value, description) VALUES ${placeholders.join(', ')}`, params)
 }
 
 async function batchInsertDataDomainAttributes(
   db: PGlite,
   projectId: number,
-  attributes: Record<string, string[]>,
+  attributes: Record<string, { name: string; description: string }[]>,
 ) {
-  for (const [domainValue, values] of Object.entries(attributes)) {
-    if (values.length === 0) continue
+  for (const [domainValue, entries] of Object.entries(attributes)) {
+    if (entries.length === 0) continue
     const params: (number | string)[] = []
-    const placeholders = values.map((value, index) => {
-      params.push(projectId, domainValue, value)
-      return `($${index * 3 + 1}, $${index * 3 + 2}, $${index * 3 + 3})`
+    const placeholders = entries.map((entry, index) => {
+      params.push(projectId, domainValue, entry.name, entry.description)
+      return `($${index * 4 + 1}, $${index * 4 + 2}, $${index * 4 + 3}, $${index * 4 + 4})`
     })
     await db.query(
-      `INSERT INTO data_domain_attributes (project_id, domain_value, value) VALUES ${placeholders.join(', ')}`,
+      `INSERT INTO data_domain_attributes (project_id, domain_value, value, description) VALUES ${placeholders.join(', ')}`,
       params,
     )
   }
