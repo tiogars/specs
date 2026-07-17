@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import App from './App'
 import type { CreateProjectInput, DataDomain, DataDomainAttribute, Project, ProjectRepository, Role, UseCase } from './projectRepository'
