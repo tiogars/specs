@@ -70,17 +70,17 @@ export async function generateProjectDocZip(project: Project): Promise<ArrayBuff
 
   project.roles.forEach((role, index) => {
     const slug = toSlug(role.name) || `role-${index + 1}`
-    zip.file(`${projectSlug}/roles/${slug}.md`, buildRoleDoc(role))
+    zip.file(`${projectSlug}/roles/${slug}/index.md`, buildRoleDoc(role))
   })
 
   project.useCases.forEach((useCase, index) => {
     const slug = toSlug(useCase.name) || `use-case-${index + 1}`
-    zip.file(`${projectSlug}/use-cases/${slug}.md`, buildUseCaseDoc(useCase))
+    zip.file(`${projectSlug}/use-cases/${slug}/index.md`, buildUseCaseDoc(useCase))
   })
 
   project.dataDomains.forEach((domain, domainIndex) => {
     const slug = toSlug(domain.name) || `data-domain-${domainIndex + 1}`
-    zip.file(`${projectSlug}/data-domains/${slug}.md`, buildDataDomainDoc(domain))
+    zip.file(`${projectSlug}/data-domains/${slug}/index.md`, buildDataDomainDoc(domain))
   })
 
   return zip.generateAsync({ type: 'arraybuffer' })

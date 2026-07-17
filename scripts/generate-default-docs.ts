@@ -62,7 +62,7 @@ function appendListSection(content: string, heading: string, values: string[], e
 
 for (const useCase of DEFAULT_PROJECT_USE_CASES) {
   const relatedDataDomains = DEFAULT_PROJECT_USE_CASE_DATA_DOMAINS[useCase.name] ?? []
-  const relativePath = path.join('use-cases', `${toSlug(useCase.name)}.md`)
+  const relativePath = path.join('use-cases', toSlug(useCase.name), 'index.md')
   const fullPath = path.join(docsDir, relativePath)
   if (!fs.existsSync(fullPath)) continue
 
@@ -76,7 +76,7 @@ for (const useCase of DEFAULT_PROJECT_USE_CASES) {
 
 for (const dataDomain of DEFAULT_PROJECT_DATA_DOMAINS) {
   const attributes = (DEFAULT_PROJECT_DATA_DOMAIN_ATTRIBUTES[dataDomain.name] ?? []).map((a) => a.name)
-  const relativePath = path.join('data-domains', `${toSlug(dataDomain.name)}.md`)
+  const relativePath = path.join('data-domains', toSlug(dataDomain.name), 'index.md')
   const fullPath = path.join(docsDir, relativePath)
   if (!fs.existsSync(fullPath)) continue
 
