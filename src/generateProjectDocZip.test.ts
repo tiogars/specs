@@ -17,6 +17,8 @@ const baseProject: Project = {
     { name: 'Export report', description: '' },
   ],
   dataDomains: [],
+  useCaseDataDomains: {},
+  dataDomainAttributes: {},
 }
 
 async function readZipFiles(zip: ArrayBuffer): Promise<Record<string, string>> {
@@ -128,7 +130,7 @@ describe('generateProjectDocZip', () => {
     expect(doc.indexOf('# Billing')).toBeLessThan(doc.indexOf('Handles all billing related data.'))
   })
 
-  it('data domain file without description contains only heading', async () => {
+  it('data domain file without description contains heading and empty attributes', async () => {
     const project: Project = {
       ...baseProject,
       dataDomains: [{ name: 'Inventory', description: '' }],
@@ -138,7 +140,8 @@ describe('generateProjectDocZip', () => {
     const doc = files['my-project/data-domains/inventory/index.md']
 
     expect(doc).toContain('# Inventory')
-    expect(doc.trim()).toBe('# Inventory')
+    expect(doc).toContain('## Attributes')
+    expect(doc).toContain('_No attributes defined._')
   })
 
   it('README.md lists data domain names', async () => {
@@ -155,5 +158,48 @@ describe('generateProjectDocZip', () => {
 
     expect(readme).toContain('- Billing')
     expect(readme).toContain('- Inventory')
+  })
+
+  it('use case file includes Related Data Domains section with linked domain names', async () => {
+    const project: Project = {
+      ...baseProject,
+      useCaseDataDomains: { 'Create invoice': ['Billing', 'User Profile'] },
+    }
+    const zip = await generateProjectDocZip(project)
+    const files = await readZipFiles(zip)
+    const doc = files['my-project/use-cases/create-invoice/index.md']
+
+    expect(doc).toContain('## Related Data Domains')
+    expect(doc).toContain('- Billing')
+    expect(doc).toContain('- User Profile')
+  })
+
+  it('use case file shows empty placeholder when no related data domains', async () => {
+    const zip = await generateProjectDocZip(baseProject)
+    const files = await readZipFiles(zip)
+    const doc = files['my-project/use-cases/create-invoice/index.md']
+
+    expect(doc).toContain('## Related Data Domains')
+    expect(doc).toContain('_No related data domains defined._')
+  })
+
+  it('data domain file includes Attributes section with attribute names', async () => {
+    const project: Project = {
+      ...baseProject,
+      dataDomains: [{ name: 'Billing', description: 'Billing description.' }],
+      dataDomainAttributes: {
+        Billing: [
+          { name: 'invoice_id', description: '' },
+          { name: 'amount', description: 'Total amount.' },
+        ],
+      },
+    }
+    const zip = await generateProjectDocZip(project)
+    const files = await readZipFiles(zip)
+    const doc = files['my-project/data-domains/billing/index.md']
+
+    expect(doc).toContain('## Attributes')
+    expect(doc).toContain('- invoice_id')
+    expect(doc).toContain('- amount')
   })
 })

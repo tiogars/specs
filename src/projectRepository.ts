@@ -28,6 +28,8 @@ export type Project = {
   roles: Role[]
   useCases: UseCase[]
   dataDomains: DataDomain[]
+  useCaseDataDomains: Record<string, string[]>
+  dataDomainAttributes: Record<string, DataDomainAttribute[]>
 }
 
 export type CreateProjectInput = {
@@ -369,11 +371,39 @@ async function readDataDomains(db: PGlite, projectId: number): Promise<DataDomai
   return result.rows.map((row) => ({ name: row.value, description: row.description }))
 }
 
+async function readAllUseCaseDataDomains(db: PGlite, projectId: number): Promise<Record<string, string[]>> {
+  const result = await db.query<{ use_case_value: string; domain_value: string }>(
+    'SELECT use_case_value, domain_value FROM use_case_data_domains WHERE project_id = $1 ORDER BY id ASC',
+    [projectId],
+  )
+  const map: Record<string, string[]> = {}
+  for (const row of result.rows) {
+    if (!map[row.use_case_value]) map[row.use_case_value] = []
+    map[row.use_case_value].push(row.domain_value)
+  }
+  return map
+}
+
+async function readAllDataDomainAttributes(db: PGlite, projectId: number): Promise<Record<string, DataDomainAttribute[]>> {
+  const result = await db.query<{ domain_value: string; value: string; description: string }>(
+    'SELECT domain_value, value, description FROM data_domain_attributes WHERE project_id = $1 ORDER BY id ASC',
+    [projectId],
+  )
+  const map: Record<string, DataDomainAttribute[]> = {}
+  for (const row of result.rows) {
+    if (!map[row.domain_value]) map[row.domain_value] = []
+    map[row.domain_value].push({ name: row.value, description: row.description })
+  }
+  return map
+}
+
 async function hydrateProject(db: PGlite, project: DbProject): Promise<Project> {
-  const [roles, useCases, dataDomains] = await Promise.all([
+  const [roles, useCases, dataDomains, useCaseDataDomains, dataDomainAttributes] = await Promise.all([
     readList(db, 'project_roles', project.id),
     readList(db, 'project_use_cases', project.id),
     readDataDomains(db, project.id),
+    readAllUseCaseDataDomains(db, project.id),
+    readAllDataDomainAttributes(db, project.id),
   ])
 
   return {
@@ -384,6 +414,8 @@ async function hydrateProject(db: PGlite, project: DbProject): Promise<Project> 
     roles,
     useCases,
     dataDomains,
+    useCaseDataDomains,
+    dataDomainAttributes,
   }
 }
 
