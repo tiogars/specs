@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import App from './App'
-import type { CreateProjectInput, DataDomain, Project, ProjectRepository, Role, UseCase } from './projectRepository'
+import type { CreateProjectInput, DataDomain, DataDomainAttribute, Project, ProjectRepository, Role, UseCase } from './projectRepository'
 
 class InMemoryProjectRepository implements ProjectRepository {
   private projects: Project[] = []
@@ -266,6 +266,56 @@ class InMemoryProjectRepository implements ProjectRepository {
     }
     const updated = current.filter((d) => d.name !== domain)
     this.useCaseDomains.set(key, updated)
+    return updated
+  }
+
+  private dataDomainAttributes: Map<string, DataDomainAttribute[]> = new Map()
+
+  private dataDomainAttributeKey(projectId: number, domainValue: string) {
+    return `${projectId}::${domainValue}`
+  }
+
+  async getDataDomainAttributes(projectId: number, domainValue: string) {
+    return this.dataDomainAttributes.get(this.dataDomainAttributeKey(projectId, domainValue)) ?? []
+  }
+
+  async addDataDomainAttribute(projectId: number, domainValue: string, attribute: string, description = '') {
+    const key = this.dataDomainAttributeKey(projectId, domainValue)
+    const normalizedAttribute = attribute.trim()
+    if (!normalizedAttribute) throw new Error('Attribute is required')
+    const current = this.dataDomainAttributes.get(key) ?? []
+    if (!current.some((a) => a.name === normalizedAttribute)) {
+      this.dataDomainAttributes.set(key, [...current, { name: normalizedAttribute, description: description.trim() }])
+    }
+    return this.dataDomainAttributes.get(key) ?? []
+  }
+
+  async updateDataDomainAttribute(projectId: number, domainValue: string, currentAttribute: string, nextAttribute: string, nextDescription = '') {
+    const key = this.dataDomainAttributeKey(projectId, domainValue)
+    const normalizedCurrent = currentAttribute.trim()
+    const normalizedNext = nextAttribute.trim()
+    if (!normalizedNext) throw new Error('Attribute is required')
+    const current = this.dataDomainAttributes.get(key) ?? []
+    const currentIndex = current.findIndex((a) => a.name === normalizedCurrent)
+    if (currentIndex < 0) throw new Error('Attribute not found')
+    if (normalizedCurrent !== normalizedNext && current.some((a) => a.name === normalizedNext)) {
+      throw new Error('Attribute already exists')
+    }
+    const updated = [...current]
+    updated[currentIndex] = { name: normalizedNext, description: nextDescription.trim() }
+    this.dataDomainAttributes.set(key, updated)
+    return updated
+  }
+
+  async removeDataDomainAttribute(projectId: number, domainValue: string, attribute: string) {
+    const key = this.dataDomainAttributeKey(projectId, domainValue)
+    const normalizedAttribute = attribute.trim()
+    const current = this.dataDomainAttributes.get(key) ?? []
+    if (!current.some((a) => a.name === normalizedAttribute)) {
+      throw new Error('Attribute not found')
+    }
+    const updated = current.filter((a) => a.name !== normalizedAttribute)
+    this.dataDomainAttributes.set(key, updated)
     return updated
   }
 }
