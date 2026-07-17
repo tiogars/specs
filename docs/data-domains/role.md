@@ -1,6 +1,0 @@
-# Role
-
-## Attributes
-
-- name
-- description

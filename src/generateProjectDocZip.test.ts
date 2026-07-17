@@ -37,10 +37,10 @@ describe('generateProjectDocZip', () => {
 
     expect(Object.keys(files).sort()).toEqual([
       'my-project/README.md',
-      'my-project/roles/admin.md',
-      'my-project/roles/end-user.md',
-      'my-project/use-cases/create-invoice.md',
-      'my-project/use-cases/export-report.md',
+      'my-project/roles/admin/index.md',
+      'my-project/roles/end-user/index.md',
+      'my-project/use-cases/create-invoice/index.md',
+      'my-project/use-cases/export-report/index.md',
     ])
   })
 
@@ -64,7 +64,7 @@ describe('generateProjectDocZip', () => {
   it('role file contains a heading with the role name and description', async () => {
     const zip = await generateProjectDocZip(baseProject)
     const files = await readZipFiles(zip)
-    const adminDoc = files['my-project/roles/admin.md']
+    const adminDoc = files['my-project/roles/admin/index.md']
 
     expect(adminDoc).toContain('# Admin')
     expect(adminDoc).toContain('Can administer the system.')
@@ -73,7 +73,7 @@ describe('generateProjectDocZip', () => {
   it('use case file contains a heading with the use case name and description', async () => {
     const zip = await generateProjectDocZip(baseProject)
     const files = await readZipFiles(zip)
-    const useCaseDoc = files['my-project/use-cases/create-invoice.md']
+    const useCaseDoc = files['my-project/use-cases/create-invoice/index.md']
 
     expect(useCaseDoc).toContain('# Create invoice')
     expect(useCaseDoc).toContain('Allows invoice creation.')
@@ -110,8 +110,8 @@ describe('generateProjectDocZip', () => {
     const zip = await generateProjectDocZip(project)
     const files = await readZipFiles(zip)
 
-    expect(files['my-project/data-domains/billing.md']).toBeDefined()
-    expect(files['my-project/data-domains/user-profile.md']).toBeDefined()
+    expect(files['my-project/data-domains/billing/index.md']).toBeDefined()
+    expect(files['my-project/data-domains/user-profile/index.md']).toBeDefined()
   })
 
   it('data domain file starts with heading then description', async () => {
@@ -121,7 +121,7 @@ describe('generateProjectDocZip', () => {
     }
     const zip = await generateProjectDocZip(project)
     const files = await readZipFiles(zip)
-    const doc = files['my-project/data-domains/billing.md']
+    const doc = files['my-project/data-domains/billing/index.md']
 
     expect(doc).toContain('# Billing')
     expect(doc).toContain('Handles all billing related data.')
@@ -135,7 +135,7 @@ describe('generateProjectDocZip', () => {
     }
     const zip = await generateProjectDocZip(project)
     const files = await readZipFiles(zip)
-    const doc = files['my-project/data-domains/inventory.md']
+    const doc = files['my-project/data-domains/inventory/index.md']
 
     expect(doc).toContain('# Inventory')
     expect(doc.trim()).toBe('# Inventory')
