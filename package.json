@@ -10,6 +10,7 @@
     "preview": "vite preview",
     "test": "vitest",
     "test:run": "vitest run",
+    "coverage": "vitest run --coverage",
     "docs:generate": "node --experimental-strip-types scripts/generate-default-docs.ts"
   },
   "dependencies": {
@@ -32,6 +33,7 @@
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.3",
+    "@vitest/coverage-v8": "4.1.10",
     "jsdom": "29.1.1",
     "oxlint": "^1.74.0",
     "typescript": "~7.0.2",
