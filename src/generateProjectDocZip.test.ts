@@ -1,6 +1,6 @@
 import JSZip from 'jszip'
 import { describe, expect, it } from 'vitest'
-import { generateProjectDocZip } from './generateProjectDocZip'
+import { buildMkdocsConfig, generateProjectDocZip } from './generateProjectDocZip'
 import type { Project } from './projectRepository'
 
 const baseProject: Project = {
@@ -127,6 +127,33 @@ describe('generateProjectDocZip', () => {
     expect(mkdocs).toContain("      - 'Admin': roles/admin/index.md")
     expect(mkdocs).toContain("      - 'Create invoice': use-cases/create-invoice/index.md")
     expect(mkdocs).toContain("      - 'Billing': data-domains/billing/index.md")
+  })
+
+  it('buildMkdocsConfig includes explicit URLs and omits empty navigation sections', () => {
+    const project: Project = {
+      ...baseProject,
+      name: ' ',
+      description: ' ',
+      roles: [],
+      useCases: [],
+      dataDomains: [],
+    }
+
+    const mkdocs = buildMkdocsConfig(project, {
+      siteName: 'Specs Portal',
+      siteDescription: 'Custom docs site',
+      siteUrl: 'https://example.com/docs/',
+      repoUrl: 'https://github.com/example/specs',
+    })
+
+    expect(mkdocs).toContain("site_name: 'Specs Portal'")
+    expect(mkdocs).toContain("site_description: 'Custom docs site'")
+    expect(mkdocs).toContain('site_url: https://example.com/docs/')
+    expect(mkdocs).toContain('repo_url: https://github.com/example/specs')
+    expect(mkdocs).toContain('  - Home: index.md')
+    expect(mkdocs).not.toContain('  - Roles:')
+    expect(mkdocs).not.toContain('  - Use Cases:')
+    expect(mkdocs).not.toContain('  - Data Domains:')
   })
 
   it('generates data domain files in data-domains/ folder', async () => {
