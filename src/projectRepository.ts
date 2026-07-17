@@ -81,8 +81,8 @@ type DbEntityValue = {
   description: string
 }
 
-// v5 adds data domain and data domain attribute seed data.
-const DEFAULT_PROJECT_SEED_VERSION = '5'
+// v6 adds use-case → data-domain link seed data.
+const DEFAULT_PROJECT_SEED_VERSION = '6'
 
 export const DEFAULT_PROJECT_NAME = 'specs (default)'
 
@@ -128,6 +128,28 @@ export const DEFAULT_PROJECT_DATA_DOMAIN_ATTRIBUTES: Record<string, string[]> = 
   'Data Domain Attribute': ['name', 'description'],
 }
 
+export const DEFAULT_PROJECT_USE_CASE_DATA_DOMAINS: Record<string, string[]> = {
+  'Create a project': ['Project'],
+  'View saved projects': ['Project'],
+  'Add a role to a project': ['Project', 'Role'],
+  'Edit a role in a project': ['Project', 'Role'],
+  'Delete a role from a project': ['Project', 'Role'],
+  'Add a use case to a project': ['Project', 'Use Case'],
+  'Edit a use case in a project': ['Project', 'Use Case'],
+  'Delete a use case from a project': ['Project', 'Use Case'],
+  'Create a data domain': ['Data Domain'],
+  'Edit a data domain': ['Data Domain'],
+  'Delete a data domain': ['Data Domain'],
+  'View a data domain': ['Data Domain'],
+  'View saved data domains': ['Data Domain'],
+  'Add a data domain to a use case': ['Data Domain', 'Use Case'],
+  'Create a data domain then add to a use case': ['Data Domain', 'Use Case'],
+  'Add a data domain attribute': ['Data Domain', 'Data Domain Attribute'],
+  'Edit a data domain attribute': ['Data Domain', 'Data Domain Attribute'],
+  'Delete a data domain attribute': ['Data Domain', 'Data Domain Attribute'],
+  'Download documentation as ZIP': ['Project'],
+}
+
 const ALLOWED_VALUE_TABLES = ['project_roles', 'project_use_cases', 'project_data_domains'] as const
 type ValueTable = (typeof ALLOWED_VALUE_TABLES)[number]
 
@@ -158,6 +180,25 @@ async function batchInsertDataDomainAttributes(
     })
     await db.query(
       `INSERT INTO data_domain_attributes (project_id, domain_value, value) VALUES ${placeholders.join(', ')}`,
+      params,
+    )
+  }
+}
+
+async function batchInsertUseCaseDataDomains(
+  db: PGlite,
+  projectId: number,
+  links: Record<string, string[]>,
+) {
+  for (const [useCaseValue, domainValues] of Object.entries(links)) {
+    if (domainValues.length === 0) continue
+    const params: (number | string)[] = []
+    const placeholders = domainValues.map((domainValue, index) => {
+      params.push(projectId, useCaseValue, domainValue)
+      return `($${index * 3 + 1}, $${index * 3 + 2}, $${index * 3 + 3})`
+    })
+    await db.query(
+      `INSERT INTO use_case_data_domains (project_id, use_case_value, domain_value) VALUES ${placeholders.join(', ')} ON CONFLICT DO NOTHING`,
       params,
     )
   }
@@ -204,6 +245,7 @@ async function seedDefaultProject(db: PGlite) {
   await batchInsertValues(db, 'project_use_cases', projectId, DEFAULT_PROJECT_USE_CASES)
   await batchInsertValues(db, 'project_data_domains', projectId, DEFAULT_PROJECT_DATA_DOMAINS)
   await batchInsertDataDomainAttributes(db, projectId, DEFAULT_PROJECT_DATA_DOMAIN_ATTRIBUTES)
+  await batchInsertUseCaseDataDomains(db, projectId, DEFAULT_PROJECT_USE_CASE_DATA_DOMAINS)
 
   await db.query(
     "INSERT INTO metadata (key, value) VALUES ('default_project_seed_version', $1) ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value",
