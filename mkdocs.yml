@@ -5,3 +5,38 @@ repo_url: https://github.com/tiogars/specs
 
 theme:
   name: material
+
+nav:
+  - Home: index.md
+  - Roles:
+      - 'End User': roles/end-user/index.md
+      - 'Developer': roles/developer/index.md
+      - 'DevOps Engineer': roles/devops-engineer/index.md
+  - Use Cases:
+      - 'Create a project': use-cases/create-a-project/index.md
+      - 'View saved projects': use-cases/view-saved-projects/index.md
+      - 'Add a role to a project': use-cases/add-a-role-to-a-project/index.md
+      - 'Edit a role in a project': use-cases/edit-a-role-in-a-project/index.md
+      - 'Delete a role from a project': use-cases/delete-a-role-from-a-project/index.md
+      - 'Add a use case to a project': use-cases/add-a-use-case-to-a-project/index.md
+      - 'Edit a use case in a project': use-cases/edit-a-use-case-in-a-project/index.md
+      - 'Delete a use case from a project': use-cases/delete-a-use-case-from-a-project/index.md
+      - 'Create a data domain': use-cases/create-a-data-domain/index.md
+      - 'Edit a data domain': use-cases/edit-a-data-domain/index.md
+      - 'Delete a data domain': use-cases/delete-a-data-domain/index.md
+      - 'View a data domain': use-cases/view-a-data-domain/index.md
+      - 'View saved data domains': use-cases/view-saved-data-domains/index.md
+      - 'Add a data domain to a use case': use-cases/add-a-data-domain-to-a-use-case/index.md
+      - 'Create a data domain then add to a use case': use-cases/create-a-data-domain-then-add-to-a-use-case/index.md
+      - 'Add a data domain attribute': use-cases/add-a-data-domain-attribute/index.md
+      - 'Edit a data domain attribute': use-cases/edit-a-data-domain-attribute/index.md
+      - 'Delete a data domain attribute': use-cases/delete-a-data-domain-attribute/index.md
+      - 'Download documentation as ZIP': use-cases/download-documentation-as-zip/index.md
+      - 'Use the app offline (PWA)': use-cases/use-the-app-offline-pwa/index.md
+      - 'Deploy app to GitHub Pages': use-cases/deploy-app-to-github-pages/index.md
+  - Data Domains:
+      - 'Project': data-domains/project/index.md
+      - 'Role': data-domains/role/index.md
+      - 'Use Case': data-domains/use-case/index.md
+      - 'Data Domain': data-domains/data-domain/index.md
+      - 'Data Domain Attribute': data-domains/data-domain-attribute/index.md

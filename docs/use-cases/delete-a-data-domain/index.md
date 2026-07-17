@@ -1,7 +1,15 @@
 # Delete a data domain
 
+## Goal
+
 Remove a data domain and its attributes
 
 ## Related Data Domains
 
-- Data Domain
+- [Data Domain](../../data-domains/data-domain/): A logical grouping of related data with typed attributes
+
+## Suggested Acceptance Criteria
+
+- A confirmation step prevents accidental deletion.
+- The deleted entity is removed from listings and related references.
+- No orphaned links or stale associations remain after deletion.

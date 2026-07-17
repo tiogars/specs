@@ -13,16 +13,121 @@ function toMarkdownListItem(value: string): string {
   return `- ${value}`
 }
 
+function escapeMarkdownTableCell(value: string): string {
+  return value.replace(/\|/g, '\\|')
+}
+
+function withFallback(value: string, fallback: string): string {
+  const trimmed = value.trim()
+  return trimmed || fallback
+}
+
+function buildAcceptanceCriteria(useCaseName: string): string[] {
+  const normalized = useCaseName.trim().toLowerCase()
+
+  if (normalized.includes('download documentation')) {
+    return [
+      'The generated ZIP downloads successfully from the project detail page.',
+      'The archive includes root index.md and section folders for roles, use cases, and data domains.',
+      'Generated markdown files contain valid relative links across related entities.',
+    ]
+  }
+
+  if (normalized.includes('offline') || normalized.includes('pwa')) {
+    return [
+      'The application can be installed as a PWA in a supported browser.',
+      'Core navigation and previously saved project data remain available without network access.',
+      'Returning online does not corrupt locally persisted data.',
+    ]
+  }
+
+  if (normalized.includes('deploy')) {
+    return [
+      'The deployment workflow completes without errors.',
+      'Both web app and MkDocs output are accessible on the configured Pages domain.',
+      'The published version metadata reflects the current build number and commit SHA.',
+    ]
+  }
+
+  if (normalized.includes('delete') || normalized.includes('remove')) {
+    return [
+      'A confirmation step prevents accidental deletion.',
+      'The deleted entity is removed from listings and related references.',
+      'No orphaned links or stale associations remain after deletion.',
+    ]
+  }
+
+  if (normalized.includes('edit') || normalized.includes('update') || normalized.includes('rename')) {
+    return [
+      'The target entity can be updated with validated input.',
+      'Existing references continue to resolve to the updated entity.',
+      'Updated values are persisted and visible after reload.',
+    ]
+  }
+
+  if (normalized.includes('view') || normalized.includes('browse') || normalized.includes('saved')) {
+    return [
+      'The user can open the relevant listing or detail page from navigation.',
+      'Displayed details match persisted data.',
+      'Empty states are clear and actionable when no records exist.',
+    ]
+  }
+
+  if (normalized.includes('add') || normalized.includes('link') || normalized.includes('assign')) {
+    return [
+      'The user can create or link the target entity with valid input.',
+      'Duplicate additions are prevented or safely ignored.',
+      'The new relationship appears in both source and related views.',
+    ]
+  }
+
+  if (normalized.includes('create')) {
+    return [
+      'A new entity can be created with required fields only.',
+      'The created entity appears immediately in listings and detail views.',
+      'Persisted data remains available after page refresh.',
+    ]
+  }
+
+  return [
+    'The actor can complete the full flow without ambiguity.',
+    'The expected data changes are captured in the related data domains.',
+    'Error and empty-state behavior are documented when applicable.',
+  ]
+}
+
 function buildReadme(project: Project): string {
-  const rolesList = project.roles.map((role) => toMarkdownListItem(role.name)).join('\n')
-  const useCasesList = project.useCases.map((useCase) => toMarkdownListItem(useCase.name)).join('\n')
-  const dataDomainsList = project.dataDomains.map((d) => toMarkdownListItem(d.name)).join('\n')
+  const rolesList = project.roles
+    .map((role) => toMarkdownListItem(`[${role.name}](roles/${toSlug(role.name) || 'role'}/): ${withFallback(role.description, 'No description.')}`))
+    .join('\n')
+  const useCasesList = project.useCases
+    .map(
+      (useCase) =>
+        toMarkdownListItem(
+          `[${useCase.name}](use-cases/${toSlug(useCase.name) || 'use-case'}/): ${withFallback(useCase.description, 'No description.')}`,
+        ),
+    )
+    .join('\n')
+  const dataDomainsList = project.dataDomains
+    .map(
+      (domain) =>
+        toMarkdownListItem(
+          `[${domain.name}](data-domains/${toSlug(domain.name) || 'data-domain'}/): ${withFallback(domain.description, 'No description.')}`,
+        ),
+    )
+    .join('\n')
   const descriptionLines = project.description ? [project.description, ''] : []
 
   return [
     `# ${project.name}`,
     '',
     ...descriptionLines,
+    '## Overview',
+    '',
+    `- Roles: ${project.roles.length}`,
+    `- Use Cases: ${project.useCases.length}`,
+    `- Data Domains: ${project.dataDomains.length}`,
+    '',
     '## Roles',
     '',
     rolesList || '_No roles defined._',
@@ -39,32 +144,82 @@ function buildReadme(project: Project): string {
 }
 
 function buildRoleDoc(role: { name: string; description: string }): string {
-  const lines: string[] = [`# ${role.name}`, '']
-  if (role.description) {
-    lines.push(role.description, '')
-  }
+  const lines: string[] = [
+    `# ${role.name}`,
+    '',
+    '## Summary',
+    '',
+    withFallback(role.description, 'No description provided.'),
+    '',
+    '## Responsibilities',
+    '',
+    '- Define this role contribution to each relevant use case.',
+    '- Keep role permissions and expectations explicit and testable.',
+    '',
+  ]
   return lines.join('\n')
 }
 
-function buildUseCaseDoc(useCase: { name: string; description: string }, dataDomains: string[]): string {
-  const lines: string[] = [`# ${useCase.name}`, '']
-  if (useCase.description) {
-    lines.push(useCase.description, '')
-  }
+function buildUseCaseDoc(useCase: { name: string; description: string }, dataDomains: DataDomain[]): string {
+  const lines: string[] = [
+    `# ${useCase.name}`,
+    '',
+    '## Goal',
+    '',
+    withFallback(useCase.description, 'No description provided.'),
+    '',
+  ]
+
   const listBody =
-    dataDomains.length > 0 ? dataDomains.map(toMarkdownListItem).join('\n') : '_No related data domains defined._'
+    dataDomains.length > 0
+      ? dataDomains
+          .map(
+            (domain) =>
+              toMarkdownListItem(
+                `[${domain.name}](../../data-domains/${toSlug(domain.name) || 'data-domain'}/): ${withFallback(domain.description, 'No description.')}`,
+              ),
+          )
+          .join('\n')
+      : '_No related data domains defined._'
   lines.push('## Related Data Domains', '', listBody, '')
+  const acceptanceCriteria = buildAcceptanceCriteria(useCase.name)
+  lines.push(
+    '## Suggested Acceptance Criteria',
+    '',
+    ...acceptanceCriteria.map(toMarkdownListItem),
+    '',
+  )
   return lines.join('\n')
 }
 
-function buildDataDomainDoc(domain: DataDomain, attributes: DataDomainAttribute[]): string {
-  const lines: string[] = [`# ${domain.name}`, '']
-  if (domain.description) {
-    lines.push(domain.description, '')
+function buildDataDomainDoc(domain: DataDomain, attributes: DataDomainAttribute[], relatedUseCases: { name: string }[]): string {
+  const lines: string[] = [
+    `# ${domain.name}`,
+    '',
+    '## Purpose',
+    '',
+    withFallback(domain.description, 'No description provided.'),
+    '',
+  ]
+
+  if (attributes.length === 0) {
+    lines.push('## Attributes', '', '_No attributes defined._', '')
+  } else {
+    const attributeRows = attributes.map(
+      (attribute) =>
+        `| ${escapeMarkdownTableCell(attribute.name)} | ${escapeMarkdownTableCell(withFallback(attribute.description, 'No description.'))} |`,
+    )
+    lines.push('## Attributes', '', '| Attribute | Description |', '| --- | --- |', ...attributeRows, '')
   }
-  const listBody =
-    attributes.length > 0 ? attributes.map((a) => toMarkdownListItem(a.name)).join('\n') : '_No attributes defined._'
-  lines.push('## Attributes', '', listBody, '')
+
+  const relatedUseCaseList =
+    relatedUseCases.length > 0
+      ? relatedUseCases
+          .map((useCase) => toMarkdownListItem(`[${useCase.name}](../../use-cases/${toSlug(useCase.name) || 'use-case'}/)`))
+          .join('\n')
+      : '_No related use cases defined._'
+
+  lines.push('## Related Use Cases', '', relatedUseCaseList, '')
   return lines.join('\n')
 }
 
@@ -81,14 +236,22 @@ export async function generateProjectDocZip(project: Project): Promise<ArrayBuff
 
   project.useCases.forEach((useCase, index) => {
     const slug = toSlug(useCase.name) || `use-case-${index + 1}`
-    const relatedDomains = project.useCaseDataDomains[useCase.name] ?? []
+    const relatedDomainNames = project.useCaseDataDomains[useCase.name] ?? []
+    const relatedDomains = relatedDomainNames.map((domainName) => {
+      const knownDomain = project.dataDomains.find((domain) => domain.name === domainName)
+      return knownDomain ?? { name: domainName, description: '' }
+    })
     zip.file(`${projectSlug}/use-cases/${slug}/index.md`, buildUseCaseDoc(useCase, relatedDomains))
   })
 
   project.dataDomains.forEach((domain, domainIndex) => {
     const slug = toSlug(domain.name) || `data-domain-${domainIndex + 1}`
     const attributes = project.dataDomainAttributes[domain.name] ?? []
-    zip.file(`${projectSlug}/data-domains/${slug}/index.md`, buildDataDomainDoc(domain, attributes))
+    const relatedUseCases = project.useCases.filter((useCase) => {
+      const linkedDomains = project.useCaseDataDomains[useCase.name] ?? []
+      return linkedDomains.includes(domain.name)
+    })
+    zip.file(`${projectSlug}/data-domains/${slug}/index.md`, buildDataDomainDoc(domain, attributes, relatedUseCases))
   })
 
   return zip.generateAsync({ type: 'arraybuffer' })

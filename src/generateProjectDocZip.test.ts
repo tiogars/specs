@@ -38,7 +38,7 @@ describe('generateProjectDocZip', () => {
     const files = await readZipFiles(zip)
 
     expect(Object.keys(files).sort()).toEqual([
-      'my-project/README.md',
+      'my-project/index.md',
       'my-project/roles/admin/index.md',
       'my-project/roles/end-user/index.md',
       'my-project/use-cases/create-invoice/index.md',
@@ -46,21 +46,23 @@ describe('generateProjectDocZip', () => {
     ])
   })
 
-  it('README.md lists roles, use cases, and data domains', async () => {
+  it('index.md lists roles, use cases, and data domains', async () => {
     const zip = await generateProjectDocZip(baseProject)
     const files = await readZipFiles(zip)
-    const readme = files['my-project/README.md']
+    const indexDoc = files['my-project/index.md']
 
-    expect(readme).toContain('# My Project')
-    expect(readme).toContain('My project description')
-    expect(readme).toContain('## Roles')
-    expect(readme).toContain('- Admin')
-    expect(readme).toContain('- End User')
-    expect(readme).toContain('## Use Cases')
-    expect(readme).toContain('- Create invoice')
-    expect(readme).toContain('- Export report')
-    expect(readme).toContain('## Data Domains')
-    expect(readme).toContain('_No data domains defined._')
+    expect(indexDoc).toContain('# My Project')
+    expect(indexDoc).toContain('My project description')
+    expect(indexDoc).toContain('## Overview')
+    expect(indexDoc).toContain('- Roles: 2')
+    expect(indexDoc).toContain('## Roles')
+    expect(indexDoc).toContain('- [Admin](roles/admin/): Can administer the system.')
+    expect(indexDoc).toContain('- [End User](roles/end-user/): No description.')
+    expect(indexDoc).toContain('## Use Cases')
+    expect(indexDoc).toContain('- [Create invoice](use-cases/create-invoice/): Allows invoice creation.')
+    expect(indexDoc).toContain('- [Export report](use-cases/export-report/): No description.')
+    expect(indexDoc).toContain('## Data Domains')
+    expect(indexDoc).toContain('_No data domains defined._')
   })
 
   it('role file contains a heading with the role name and description', async () => {
@@ -78,6 +80,7 @@ describe('generateProjectDocZip', () => {
     const useCaseDoc = files['my-project/use-cases/create-invoice/index.md']
 
     expect(useCaseDoc).toContain('# Create invoice')
+    expect(useCaseDoc).toContain('## Goal')
     expect(useCaseDoc).toContain('Allows invoice creation.')
   })
 
@@ -86,11 +89,11 @@ describe('generateProjectDocZip', () => {
     const zip = await generateProjectDocZip(project)
     const files = await readZipFiles(zip)
 
-    expect(Object.keys(files)).toEqual(['my-project/README.md'])
+    expect(Object.keys(files)).toEqual(['my-project/index.md'])
 
-    const readme = files['my-project/README.md']
-    expect(readme).toContain('_No roles defined._')
-    expect(readme).toContain('_No use cases defined._')
+    const indexDoc = files['my-project/index.md']
+    expect(indexDoc).toContain('_No roles defined._')
+    expect(indexDoc).toContain('_No use cases defined._')
   })
 
   it('uses project name as the root folder slug', async () => {
@@ -98,7 +101,7 @@ describe('generateProjectDocZip', () => {
     const zip = await generateProjectDocZip(project)
     const files = await readZipFiles(zip)
 
-    expect(Object.keys(files)).toContain('billing-payments/README.md')
+    expect(Object.keys(files)).toContain('billing-payments/index.md')
   })
 
   it('generates data domain files in data-domains/ folder', async () => {
@@ -144,7 +147,7 @@ describe('generateProjectDocZip', () => {
     expect(doc).toContain('_No attributes defined._')
   })
 
-  it('README.md lists data domain names', async () => {
+  it('index.md lists data domain names', async () => {
     const project: Project = {
       ...baseProject,
       dataDomains: [
@@ -154,10 +157,10 @@ describe('generateProjectDocZip', () => {
     }
     const zip = await generateProjectDocZip(project)
     const files = await readZipFiles(zip)
-    const readme = files['my-project/README.md']
+    const indexDoc = files['my-project/index.md']
 
-    expect(readme).toContain('- Billing')
-    expect(readme).toContain('- Inventory')
+    expect(indexDoc).toContain('- [Billing](data-domains/billing/): Billing description.')
+    expect(indexDoc).toContain('- [Inventory](data-domains/inventory/): No description.')
   })
 
   it('use case file includes Related Data Domains section with linked domain names', async () => {
@@ -170,8 +173,8 @@ describe('generateProjectDocZip', () => {
     const doc = files['my-project/use-cases/create-invoice/index.md']
 
     expect(doc).toContain('## Related Data Domains')
-    expect(doc).toContain('- Billing')
-    expect(doc).toContain('- User Profile')
+    expect(doc).toContain('- [Billing](../../data-domains/billing/): No description.')
+    expect(doc).toContain('- [User Profile](../../data-domains/user-profile/): No description.')
   })
 
   it('use case file shows empty placeholder when no related data domains', async () => {
@@ -183,10 +186,11 @@ describe('generateProjectDocZip', () => {
     expect(doc).toContain('_No related data domains defined._')
   })
 
-  it('data domain file includes Attributes section with attribute names', async () => {
+  it('data domain file includes Attributes section as a table with descriptions', async () => {
     const project: Project = {
       ...baseProject,
       dataDomains: [{ name: 'Billing', description: 'Billing description.' }],
+      useCaseDataDomains: { 'Create invoice': ['Billing'] },
       dataDomainAttributes: {
         Billing: [
           { name: 'invoice_id', description: '' },
@@ -199,7 +203,10 @@ describe('generateProjectDocZip', () => {
     const doc = files['my-project/data-domains/billing/index.md']
 
     expect(doc).toContain('## Attributes')
-    expect(doc).toContain('- invoice_id')
-    expect(doc).toContain('- amount')
+    expect(doc).toContain('| Attribute | Description |')
+    expect(doc).toContain('| invoice_id | No description. |')
+    expect(doc).toContain('| amount | Total amount. |')
+    expect(doc).toContain('## Related Use Cases')
+    expect(doc).toContain('- [Create invoice](../../use-cases/create-invoice/)')
   })
 })
