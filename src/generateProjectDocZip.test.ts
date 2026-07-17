@@ -116,7 +116,7 @@ describe('generateProjectDocZip', () => {
     const files = await readZipFiles(zip)
     const mkdocs = files['my-project/mkdocs.yml']
 
-    expect(mkdocs).toContain("site_name: 'My Project' Documentation")
+    expect(mkdocs).toContain("site_name: 'My Project Documentation'")
     expect(mkdocs).toContain("site_description: 'My project description'")
     expect(mkdocs).toContain('  - Home: index.md')
     expect(mkdocs).toContain("      - 'Admin': roles/admin/index.md")

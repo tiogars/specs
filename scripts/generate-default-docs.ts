@@ -9,7 +9,7 @@ import JSZip from 'jszip'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { generateProjectDocZip, toSlug } from '../src/generateProjectDocZip.ts'
+import { buildMkdocsConfig, generateProjectDocZip } from '../src/generateProjectDocZip.ts'
 import {
   DEFAULT_PROJECT_DATA_DOMAINS,
   DEFAULT_PROJECT_DATA_DOMAIN_ATTRIBUTES,
@@ -56,43 +56,15 @@ for (const [zipPath, file] of Object.entries(zip.files)) {
   fs.writeFileSync(fullPath, content)
 }
 
-function toYamlSingleQuoted(value: string): string {
-  return `'${value.replace(/'/g, "''")}'`
-}
-
-function buildMkdocsConfig() {
-  const lines: string[] = [
-    'site_name: Specs Documentation',
-    'site_description: Documentation generated from the Specs webapp workflow',
-    'site_url: https://specs.tiogars.fr/docs/',
-    'repo_url: https://github.com/tiogars/specs',
-    '',
-    'theme:',
-    '  name: material',
-    '',
-    'nav:',
-    '  - Home: index.md',
-    '  - Roles:',
-  ]
-
-  for (const role of defaultProject.roles) {
-    lines.push(`      - ${toYamlSingleQuoted(role.name)}: roles/${toSlug(role.name) || 'role'}/index.md`)
-  }
-
-  lines.push('  - Use Cases:')
-  for (const useCase of defaultProject.useCases) {
-    lines.push(`      - ${toYamlSingleQuoted(useCase.name)}: use-cases/${toSlug(useCase.name) || 'use-case'}/index.md`)
-  }
-
-  lines.push('  - Data Domains:')
-  for (const domain of defaultProject.dataDomains) {
-    lines.push(`      - ${toYamlSingleQuoted(domain.name)}: data-domains/${toSlug(domain.name) || 'data-domain'}/index.md`)
-  }
-
-  lines.push('')
-  return lines.join('\n')
-}
-
-fs.writeFileSync(mkdocsPath, buildMkdocsConfig(), 'utf8')
+fs.writeFileSync(
+  mkdocsPath,
+  buildMkdocsConfig(defaultProject, {
+    siteName: 'Specs Documentation',
+    siteDescription: 'Documentation generated from the Specs webapp workflow',
+    siteUrl: 'https://specs.tiogars.fr/docs/',
+    repoUrl: 'https://github.com/tiogars/specs',
+  }),
+  'utf8',
+)
 
 console.log(`Generated documentation for "${DEFAULT_PROJECT_NAME}" in ${docsDir}`)
