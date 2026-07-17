@@ -1,4 +1,4 @@
-import { PGlite } from '@electric-sql/pglite'
+import type { PGlite } from '@electric-sql/pglite'
 
 export type DataDomainAttribute = {
   name: string
@@ -277,10 +277,19 @@ async function seedDefaultProject(db: PGlite) {
 }
 
 let dbPromise: Promise<PGlite> | null = null
+let pgliteModulePromise: Promise<typeof import('@electric-sql/pglite')> | null = null
+
+async function getPGliteCtor() {
+  if (!pgliteModulePromise) {
+    pgliteModulePromise = import('@electric-sql/pglite')
+  }
+  return pgliteModulePromise
+}
 
 async function getDatabase() {
   if (!dbPromise) {
     dbPromise = (async () => {
+      const { PGlite } = await getPGliteCtor()
       const db = new PGlite('idb://specs-projects-db')
       await db.exec(`
         CREATE TABLE IF NOT EXISTS projects (

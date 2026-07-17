@@ -16,7 +16,6 @@ import DownloadIcon from '@mui/icons-material/Download'
 import GroupsIcon from '@mui/icons-material/Groups'
 import StorageIcon from '@mui/icons-material/Storage'
 import type { ProjectRepository } from '../../projectRepository'
-import { generateProjectDocZip, toSlug } from '../../generateProjectDocZip'
 
 type ProjectDetailPageProps = {
   repository: ProjectRepository
@@ -59,6 +58,7 @@ const ProjectDetailPage = ({ repository }: ProjectDetailPageProps) => {
     if (!project) return
     setIsDownloading(true)
     try {
+      const { generateProjectDocZip, toSlug } = await import('../../generateProjectDocZip')
       const zipBuffer = await generateProjectDocZip(project)
       const blob = new Blob([zipBuffer], { type: 'application/zip' })
       const url = URL.createObjectURL(blob)

@@ -13,6 +13,26 @@ export default defineConfig({
   define: {
     __APP_VERSION__: JSON.stringify(appVersion),
   },
+  build: {
+    rolldownOptions: {
+      output: {
+        codeSplitting: true,
+        manualChunks(id) {
+          if (!id.includes('node_modules')) return undefined
+
+          if (id.includes('/@electric-sql/pglite/')) return 'vendor-pglite'
+          if (id.includes('/@mui/') || id.includes('/@emotion/')) return 'vendor-mui'
+          if (id.includes('/react-router-dom/')) return 'vendor-router'
+          if (id.includes('/react-hook-form/')) return 'vendor-forms'
+          if (id.includes('/jszip/')) return 'vendor-zip'
+          if (id.includes('/workbox-window/')) return 'vendor-pwa'
+          if (id.includes('/react-dom/') || id.includes('/react/')) return 'vendor-react'
+
+          return 'vendor-misc'
+        },
+      },
+    },
+  },
   plugins: [
     react(),
     VitePWA({
