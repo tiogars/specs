@@ -37,6 +37,8 @@ class InMemoryProjectRepository implements ProjectRepository {
       roles: input.roles.map((name) => ({ name, description: '' })),
       useCases: input.useCases.map((name) => ({ name, description: '' })),
       dataDomains: [],
+      useCaseDataDomains: {},
+      dataDomainAttributes: {},
     }
 
     this.projects = [project, ...this.projects]

@@ -1,5 +1,5 @@
 import JSZip from 'jszip'
-import type { DataDomain, Project } from './projectRepository'
+import type { DataDomain, DataDomainAttribute, Project } from './projectRepository'
 
 export function toSlug(value: string): string {
   return value
@@ -46,19 +46,25 @@ function buildRoleDoc(role: { name: string; description: string }): string {
   return lines.join('\n')
 }
 
-function buildUseCaseDoc(useCase: { name: string; description: string }): string {
+function buildUseCaseDoc(useCase: { name: string; description: string }, dataDomains: string[]): string {
   const lines: string[] = [`# ${useCase.name}`, '']
   if (useCase.description) {
     lines.push(useCase.description, '')
   }
+  const listBody =
+    dataDomains.length > 0 ? dataDomains.map(toMarkdownListItem).join('\n') : '_No related data domains defined._'
+  lines.push('## Related Data Domains', '', listBody, '')
   return lines.join('\n')
 }
 
-function buildDataDomainDoc(domain: DataDomain): string {
+function buildDataDomainDoc(domain: DataDomain, attributes: DataDomainAttribute[]): string {
   const lines: string[] = [`# ${domain.name}`, '']
   if (domain.description) {
     lines.push(domain.description, '')
   }
+  const listBody =
+    attributes.length > 0 ? attributes.map((a) => toMarkdownListItem(a.name)).join('\n') : '_No attributes defined._'
+  lines.push('## Attributes', '', listBody, '')
   return lines.join('\n')
 }
 
@@ -75,12 +81,14 @@ export async function generateProjectDocZip(project: Project): Promise<ArrayBuff
 
   project.useCases.forEach((useCase, index) => {
     const slug = toSlug(useCase.name) || `use-case-${index + 1}`
-    zip.file(`${projectSlug}/use-cases/${slug}/index.md`, buildUseCaseDoc(useCase))
+    const relatedDomains = project.useCaseDataDomains[useCase.name] ?? []
+    zip.file(`${projectSlug}/use-cases/${slug}/index.md`, buildUseCaseDoc(useCase, relatedDomains))
   })
 
   project.dataDomains.forEach((domain, domainIndex) => {
     const slug = toSlug(domain.name) || `data-domain-${domainIndex + 1}`
-    zip.file(`${projectSlug}/data-domains/${slug}/index.md`, buildDataDomainDoc(domain))
+    const attributes = project.dataDomainAttributes[domain.name] ?? []
+    zip.file(`${projectSlug}/data-domains/${slug}/index.md`, buildDataDomainDoc(domain, attributes))
   })
 
   return zip.generateAsync({ type: 'arraybuffer' })
