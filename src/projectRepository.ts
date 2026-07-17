@@ -132,19 +132,19 @@ export const DEFAULT_PROJECT_DATA_DOMAIN_ATTRIBUTES: Record<string, { name: stri
     { name: 'is_default', description: 'Whether this is the pre-seeded default project' },
   ],
   'Role': [
-    { name: 'name', description: 'The role\'s display name' },
+    { name: 'name', description: "The role's display name" },
     { name: 'description', description: 'Optional description of the role' },
   ],
   'Use Case': [
-    { name: 'name', description: 'The use case\'s display name' },
+    { name: 'name', description: "The use case's display name" },
     { name: 'description', description: 'Optional description of the use case' },
   ],
   'Data Domain': [
-    { name: 'name', description: 'The data domain\'s display name' },
+    { name: 'name', description: "The data domain's display name" },
     { name: 'description', description: 'Optional description of the data domain' },
   ],
   'Data Domain Attribute': [
-    { name: 'name', description: 'The attribute\'s display name' },
+    { name: 'name', description: "The attribute's display name" },
     { name: 'description', description: 'Optional description of the attribute' },
   ],
 }
