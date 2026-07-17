@@ -13,6 +13,7 @@ import {
 } from '@mui/material'
 import AutoStoriesIcon from '@mui/icons-material/AutoStories'
 import DownloadIcon from '@mui/icons-material/Download'
+import FactCheckIcon from '@mui/icons-material/FactCheck'
 import GroupsIcon from '@mui/icons-material/Groups'
 import StorageIcon from '@mui/icons-material/Storage'
 import type { ProjectRepository } from '../../projectRepository'
@@ -147,6 +148,31 @@ const ProjectDetailPage = ({ repository }: ProjectDetailPageProps) => {
                 variant="contained"
               >
                 Manage use cases
+              </Button>
+            </Stack>
+          </CardContent>
+        </Card>
+
+        <Card variant="outlined" sx={{ flex: 1 }}>
+          <CardContent>
+            <Stack spacing={2}>
+              <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+                <FactCheckIcon color="action" />
+                <Typography variant="h6">Action types</Typography>
+              </Stack>
+              <Chip
+                color="success"
+                label={`${project.actionTypes.length} action types`}
+                size="small"
+                sx={{ alignSelf: 'flex-start' }}
+              />
+              <Button
+                component={RouterLink}
+                to={`/projects/${project.id}/action-types`}
+                size="small"
+                variant="contained"
+              >
+                Manage action types
               </Button>
             </Stack>
           </CardContent>

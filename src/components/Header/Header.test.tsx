@@ -14,6 +14,9 @@ const mockRepository: ProjectRepository = {
   addProjectUseCase: vi.fn(),
   updateProjectUseCase: vi.fn(),
   removeProjectUseCase: vi.fn(),
+  addProjectActionType: vi.fn(),
+  updateProjectActionType: vi.fn(),
+  removeProjectActionType: vi.fn(),
   addProjectDataDomain: vi.fn(),
   updateProjectDataDomain: vi.fn(),
   removeProjectDataDomain: vi.fn(),
@@ -23,6 +26,9 @@ const mockRepository: ProjectRepository = {
   getUseCaseRoles: vi.fn(),
   addUseCaseRole: vi.fn(),
   removeUseCaseRole: vi.fn(),
+  getUseCaseActionTypes: vi.fn(),
+  addUseCaseActionType: vi.fn(),
+  removeUseCaseActionType: vi.fn(),
   getDataDomainAttributes: vi.fn(),
   addDataDomainAttribute: vi.fn(),
   updateDataDomainAttribute: vi.fn(),
@@ -103,7 +109,7 @@ describe('Header', () => {
 
   it('loads projects on mount', async () => {
     vi.mocked(mockRepository.listProjects).mockResolvedValue([
-      { id: 1, name: 'Project A', description: '', isDefault: false, roles: [], useCases: [], dataDomains: [], useCaseDataDomains: {}, useCaseRoles: {}, dataDomainAttributes: {} },
+      { id: 1, name: 'Project A', description: '', isDefault: false, roles: [], useCases: [], actionTypes: [], dataDomains: [], useCaseDataDomains: {}, useCaseRoles: {}, useCaseActionTypes: {}, dataDomainAttributes: {} },
     ])
     renderComponent()
 
@@ -114,7 +120,7 @@ describe('Header', () => {
 
   it('renders project names in select', async () => {
     vi.mocked(mockRepository.listProjects).mockResolvedValue([
-      { id: 1, name: 'My Project', description: '', isDefault: false, roles: [], useCases: [], dataDomains: [], useCaseDataDomains: {}, useCaseRoles: {}, dataDomainAttributes: {} },
+      { id: 1, name: 'My Project', description: '', isDefault: false, roles: [], useCases: [], actionTypes: [], dataDomains: [], useCaseDataDomains: {}, useCaseRoles: {}, useCaseActionTypes: {}, dataDomainAttributes: {} },
     ])
     renderComponent()
 

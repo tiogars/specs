@@ -1,7 +1,7 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import App from './App'
-import type { CreateProjectInput, DataDomain, DataDomainAttribute, Project, ProjectRepository, Role, UseCase } from './projectRepository'
+import type { ActionType, CreateProjectInput, DataDomain, DataDomainAttribute, Project, ProjectRepository, Role, UseCase } from './projectRepository'
 
 class InMemoryProjectRepository implements ProjectRepository {
   private projects: Project[] = []
@@ -36,9 +36,11 @@ class InMemoryProjectRepository implements ProjectRepository {
       isDefault: false,
       roles: input.roles.map((name) => ({ name, description: '' })),
       useCases: input.useCases.map((name) => ({ name, description: '' })),
+      actionTypes: [],
       dataDomains: [],
       useCaseDataDomains: {},
       useCaseRoles: {},
+      useCaseActionTypes: {},
       dataDomainAttributes: {},
     }
 
@@ -194,6 +196,15 @@ class InMemoryProjectRepository implements ProjectRepository {
                 roles,
               ]),
             ),
+      useCaseActionTypes:
+        normalizedCurrentUseCase === normalizedNextUseCase
+          ? project.useCaseActionTypes
+          : Object.fromEntries(
+              Object.entries(project.useCaseActionTypes).map(([useCaseName, actionTypes]) => [
+                useCaseName === normalizedCurrentUseCase ? normalizedNextUseCase : useCaseName,
+                actionTypes,
+              ]),
+            ),
     }
     this.projects = this.projects.map((value) => (value.id === projectId ? updatedProject : value))
     return updatedProject
@@ -218,6 +229,106 @@ class InMemoryProjectRepository implements ProjectRepository {
       ),
       useCaseRoles: Object.fromEntries(
         Object.entries(project.useCaseRoles).filter(([useCaseName]) => useCaseName !== normalizedUseCase),
+      ),
+      useCaseActionTypes: Object.fromEntries(
+        Object.entries(project.useCaseActionTypes).filter(([useCaseName]) => useCaseName !== normalizedUseCase),
+      ),
+    }
+    this.projects = this.projects.map((value) => (value.id === projectId ? updatedProject : value))
+    return updatedProject
+  }
+
+  async addProjectActionType(projectId: number, actionType: string, description: string, acceptanceCriteria: string[]) {
+    const project = this.projects.find((value) => value.id === projectId)
+    if (!project) {
+      return null
+    }
+
+    const normalizedActionType = this.normalizeAndValidateTextField(actionType, 'Action type')
+    const normalizedAcceptanceCriteria = Array.from(new Set(acceptanceCriteria.map((value) => value.trim()).filter(Boolean)))
+    const updatedProject = project.actionTypes.some((a) => a.name === normalizedActionType)
+      ? project
+      : {
+          ...project,
+          actionTypes: [
+            ...project.actionTypes,
+            { name: normalizedActionType, description: description.trim(), acceptanceCriteria: normalizedAcceptanceCriteria },
+          ],
+        }
+
+    if (updatedProject !== project) {
+      this.projects = this.projects.map((value) => (value.id === projectId ? updatedProject : value))
+    }
+
+    return updatedProject
+  }
+
+  async updateProjectActionType(
+    projectId: number,
+    currentActionType: string,
+    nextActionType: string,
+    nextDescription: string,
+    nextAcceptanceCriteria: string[],
+  ) {
+    const project = this.projects.find((value) => value.id === projectId)
+    if (!project) {
+      return null
+    }
+
+    const normalizedCurrent = this.normalizeAndValidateTextField(currentActionType, 'Action type')
+    const normalizedNext = this.normalizeAndValidateTextField(nextActionType, 'Action type')
+    const currentIndex = project.actionTypes.findIndex((value) => value.name === normalizedCurrent)
+    if (currentIndex < 0) {
+      throw new Error('Action type not found')
+    }
+
+    if (normalizedCurrent !== normalizedNext && project.actionTypes.some((value) => value.name === normalizedNext)) {
+      throw new Error('Action type already exists')
+    }
+
+    const normalizedAcceptanceCriteria = Array.from(new Set(nextAcceptanceCriteria.map((value) => value.trim()).filter(Boolean)))
+    const updatedActionTypes: ActionType[] = [...project.actionTypes]
+    updatedActionTypes[currentIndex] = {
+      name: normalizedNext,
+      description: nextDescription.trim(),
+      acceptanceCriteria: normalizedAcceptanceCriteria,
+    }
+    const updatedProject = {
+      ...project,
+      actionTypes: updatedActionTypes,
+      useCaseActionTypes:
+        normalizedCurrent === normalizedNext
+          ? project.useCaseActionTypes
+          : Object.fromEntries(
+              Object.entries(project.useCaseActionTypes).map(([useCaseName, actionTypes]) => [
+                useCaseName,
+                actionTypes.map((actionTypeName) => (actionTypeName === normalizedCurrent ? normalizedNext : actionTypeName)),
+              ]),
+            ),
+    }
+    this.projects = this.projects.map((value) => (value.id === projectId ? updatedProject : value))
+    return updatedProject
+  }
+
+  async removeProjectActionType(projectId: number, actionType: string) {
+    const project = this.projects.find((value) => value.id === projectId)
+    if (!project) {
+      return null
+    }
+
+    const normalizedActionType = this.normalizeAndValidateTextField(actionType, 'Action type')
+    if (!project.actionTypes.some((value) => value.name === normalizedActionType)) {
+      throw new Error('Action type not found')
+    }
+
+    const updatedProject = {
+      ...project,
+      actionTypes: project.actionTypes.filter((value) => value.name !== normalizedActionType),
+      useCaseActionTypes: Object.fromEntries(
+        Object.entries(project.useCaseActionTypes).map(([useCaseName, actionTypes]) => [
+          useCaseName,
+          actionTypes.filter((actionTypeName) => actionTypeName !== normalizedActionType),
+        ]),
       ),
     }
     this.projects = this.projects.map((value) => (value.id === projectId ? updatedProject : value))
@@ -361,6 +472,52 @@ class InMemoryProjectRepository implements ProjectRepository {
     }
     this.projects = this.projects.map((value) => (value.id === projectId ? updatedProject : value))
     return this.getUseCaseRoles(projectId, useCase)
+  }
+
+  async getUseCaseActionTypes(projectId: number, useCase: string) {
+    const project = this.projects.find((p) => p.id === projectId)
+    if (!project) return []
+    const linkedActionTypeNames = project.useCaseActionTypes[useCase] ?? []
+    return linkedActionTypeNames.map((actionTypeName) => {
+      const knownActionType = project.actionTypes.find((actionType) => actionType.name === actionTypeName)
+      return knownActionType ?? { name: actionTypeName, description: '', acceptanceCriteria: [] }
+    })
+  }
+
+  async addUseCaseActionType(projectId: number, useCase: string, actionType: string) {
+    const project = this.projects.find((p) => p.id === projectId)
+    if (!project) return []
+    const normalizedActionType = this.normalizeAndValidateTextField(actionType, 'Action type')
+    const current = project.useCaseActionTypes[useCase] ?? []
+    const next = current.includes(normalizedActionType) ? current : [...current, normalizedActionType]
+    const updatedProject = {
+      ...project,
+      useCaseActionTypes: {
+        ...project.useCaseActionTypes,
+        [useCase]: next,
+      },
+    }
+    this.projects = this.projects.map((value) => (value.id === projectId ? updatedProject : value))
+    return this.getUseCaseActionTypes(projectId, useCase)
+  }
+
+  async removeUseCaseActionType(projectId: number, useCase: string, actionType: string) {
+    const project = this.projects.find((p) => p.id === projectId)
+    if (!project) return []
+    const normalizedActionType = this.normalizeAndValidateTextField(actionType, 'Action type')
+    const current = project.useCaseActionTypes[useCase] ?? []
+    if (!current.includes(normalizedActionType)) {
+      throw new Error('Action type link not found')
+    }
+    const updatedProject = {
+      ...project,
+      useCaseActionTypes: {
+        ...project.useCaseActionTypes,
+        [useCase]: current.filter((actionTypeName) => actionTypeName !== normalizedActionType),
+      },
+    }
+    this.projects = this.projects.map((value) => (value.id === projectId ? updatedProject : value))
+    return this.getUseCaseActionTypes(projectId, useCase)
   }
 
   private dataDomainAttributes: Map<string, DataDomainAttribute[]> = new Map()

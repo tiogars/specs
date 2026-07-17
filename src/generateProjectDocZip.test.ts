@@ -16,9 +16,11 @@ const baseProject: Project = {
     { name: 'Create invoice', description: 'Allows invoice creation.' },
     { name: 'Export report', description: '' },
   ],
+  actionTypes: [],
   dataDomains: [],
   useCaseDataDomains: {},
   useCaseRoles: { 'Create invoice': ['Admin'] },
+  useCaseActionTypes: {},
   dataDomainAttributes: {},
 }
 

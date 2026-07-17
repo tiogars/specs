@@ -14,6 +14,9 @@ const mockRepository: ProjectRepository = {
   addProjectUseCase: vi.fn(),
   updateProjectUseCase: vi.fn(),
   removeProjectUseCase: vi.fn(),
+  addProjectActionType: vi.fn(),
+  updateProjectActionType: vi.fn(),
+  removeProjectActionType: vi.fn(),
   addProjectDataDomain: vi.fn(),
   updateProjectDataDomain: vi.fn(),
   removeProjectDataDomain: vi.fn(),
@@ -23,6 +26,9 @@ const mockRepository: ProjectRepository = {
   getUseCaseRoles: vi.fn(),
   addUseCaseRole: vi.fn(),
   removeUseCaseRole: vi.fn(),
+  getUseCaseActionTypes: vi.fn(),
+  addUseCaseActionType: vi.fn(),
+  removeUseCaseActionType: vi.fn(),
   getDataDomainAttributes: vi.fn(),
   addDataDomainAttribute: vi.fn(),
   updateDataDomainAttribute: vi.fn(),
@@ -60,12 +66,14 @@ describe('ProjectDataDomainsPage', () => {
       isDefault: false,
       roles: [],
       useCases: [],
+      actionTypes: [],
       dataDomains: [
         { name: 'Customer', description: 'Customer data' },
         { name: 'Order', description: 'Order data' },
       ],
       useCaseDataDomains: {},
       useCaseRoles: {},
+      useCaseActionTypes: {},
       dataDomainAttributes: {},
     })
     renderComponent()
@@ -85,9 +93,11 @@ describe('ProjectDataDomainsPage', () => {
       isDefault: false,
       roles: [],
       useCases: [],
+      actionTypes: [],
       dataDomains: [],
       useCaseDataDomains: {},
       useCaseRoles: {},
+      useCaseActionTypes: {},
       dataDomainAttributes: {},
     })
     renderComponent()
@@ -114,9 +124,11 @@ describe('ProjectDataDomainsPage', () => {
       isDefault: false,
       roles: [],
       useCases: [],
+      actionTypes: [],
       dataDomains: [],
       useCaseDataDomains: {},
       useCaseRoles: {},
+      useCaseActionTypes: {},
       dataDomainAttributes: {},
     })
     renderComponent()
@@ -135,11 +147,13 @@ describe('ProjectDataDomainsPage', () => {
       isDefault: false,
       roles: [],
       useCases: [],
+      actionTypes: [],
       dataDomains: [
         { name: 'Customer', description: 'Customer data' },
       ],
       useCaseDataDomains: {},
       useCaseRoles: {},
+      useCaseActionTypes: {},
       dataDomainAttributes: {},
     })
     renderComponent()
@@ -157,11 +171,13 @@ describe('ProjectDataDomainsPage', () => {
       isDefault: false,
       roles: [],
       useCases: [],
+      actionTypes: [],
       dataDomains: [
         { name: 'Customer', description: 'Customer data' },
       ],
       useCaseDataDomains: {},
       useCaseRoles: {},
+      useCaseActionTypes: {},
       dataDomainAttributes: {},
     })
     renderComponent()
@@ -179,11 +195,13 @@ describe('ProjectDataDomainsPage', () => {
       isDefault: false,
       roles: [],
       useCases: [],
+      actionTypes: [],
       dataDomains: [
         { name: 'Customer', description: 'Customer data' },
       ],
       useCaseDataDomains: {},
       useCaseRoles: {},
+      useCaseActionTypes: {},
       dataDomainAttributes: {},
     })
     renderComponent()
@@ -201,11 +219,13 @@ describe('ProjectDataDomainsPage', () => {
       isDefault: false,
       roles: [],
       useCases: [],
+      actionTypes: [],
       dataDomains: [
         { name: 'Customer', description: 'All customer information' },
       ],
       useCaseDataDomains: {},
       useCaseRoles: {},
+      useCaseActionTypes: {},
       dataDomainAttributes: {},
     })
     renderComponent()
@@ -223,6 +243,7 @@ describe('ProjectDataDomainsPage', () => {
       isDefault: false,
       roles: [],
       useCases: [],
+      actionTypes: [],
       dataDomains: [
         { name: 'Customer', description: 'Customer data' },
         { name: 'Product', description: 'Product data' },
@@ -230,6 +251,7 @@ describe('ProjectDataDomainsPage', () => {
       ],
       useCaseDataDomains: {},
       useCaseRoles: {},
+      useCaseActionTypes: {},
       dataDomainAttributes: {},
     })
     renderComponent()

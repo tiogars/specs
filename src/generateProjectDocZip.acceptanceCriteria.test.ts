@@ -10,9 +10,11 @@ const baseProject: Project = {
   isDefault: false,
   roles: [],
   useCases: [],
+  actionTypes: [],
   dataDomains: [{ name: 'Project', description: 'Project data.' }],
   useCaseDataDomains: {},
   useCaseRoles: {},
+  useCaseActionTypes: {},
   dataDomainAttributes: {},
 }
 
@@ -83,5 +85,29 @@ describe('generateProjectDocZip acceptance criteria routing', () => {
   it('uses default generic criteria when no category matches', async () => {
     const doc = await generateUseCaseDoc('Coordinate stakeholder workshop')
     expect(doc).toContain('- The actor can complete the full flow without ambiguity.')
+  })
+
+  it('uses linked action type criteria when action types are linked to the use case', async () => {
+    const useCaseName = 'Custom flow'
+    const project: Project = {
+      ...baseProject,
+      useCases: [{ name: useCaseName, description: 'Use case description.' }],
+      actionTypes: [
+        {
+          name: 'Custom Action',
+          description: 'Custom description.',
+          acceptanceCriteria: ['Criterion A', 'Criterion B'],
+        },
+      ],
+      useCaseActionTypes: { [useCaseName]: ['Custom Action'] },
+      useCaseDataDomains: { [useCaseName]: ['Project'] },
+    }
+
+    const zip = await generateProjectDocZip(project)
+    const files = await readZipFiles(zip)
+    const useCaseSlug = toSlug(useCaseName) || 'use-case-1'
+    const doc = files[`intent-test-project/use-cases/${useCaseSlug}/index.md`]
+    expect(doc).toContain('- Criterion A')
+    expect(doc).toContain('- Criterion B')
   })
 })

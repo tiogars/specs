@@ -1,5 +1,5 @@
 import JSZip from 'jszip'
-import type { DataDomain, DataDomainAttribute, Project } from './projectRepository'
+import type { ActionType, DataDomain, DataDomainAttribute, Project } from './projectRepository'
 
 export function toSlug(value: string): string {
   return value
@@ -72,6 +72,13 @@ export function buildMkdocsConfig(project: Project, options: MkdocsConfigOptions
     lines.push('  - Use Cases:')
     for (const useCase of project.useCases) {
       lines.push(`      - ${toYamlSingleQuoted(useCase.name)}: use-cases/${toSlug(useCase.name) || 'use-case'}/index.md`)
+    }
+  }
+
+  if (project.actionTypes.length > 0) {
+    lines.push('  - Action Types:')
+    for (const actionType of project.actionTypes) {
+      lines.push(`      - ${toYamlSingleQuoted(actionType.name)}: action-types/${toSlug(actionType.name) || 'action-type'}/index.md`)
     }
   }
 
@@ -180,6 +187,14 @@ function buildReadme(project: Project): string {
         ),
     )
     .join('\n')
+  const actionTypesList = project.actionTypes
+    .map(
+      (actionType) =>
+        toMarkdownListItem(
+          `[${actionType.name}](action-types/${toSlug(actionType.name) || 'action-type'}/): ${withFallback(actionType.description, 'No description.')}`,
+        ),
+    )
+    .join('\n')
   const descriptionLines = project.description ? [project.description, ''] : []
 
   return [
@@ -190,6 +205,7 @@ function buildReadme(project: Project): string {
     '',
     `- Roles: ${project.roles.length}`,
     `- Use Cases: ${project.useCases.length}`,
+    `- Action Types: ${project.actionTypes.length}`,
     `- Data Domains: ${project.dataDomains.length}`,
     '',
     '## Roles',
@@ -199,6 +215,10 @@ function buildReadme(project: Project): string {
     '## Use Cases',
     '',
     useCasesList || '_No use cases defined._',
+    '',
+    '## Action Types',
+    '',
+    actionTypesList || '_No action types defined._',
     '',
     '## Data Domains',
     '',
@@ -239,6 +259,7 @@ function buildUseCaseDoc(
   useCase: { name: string; description: string },
   dataDomains: DataDomain[],
   roles: { name: string; description: string }[],
+  actionTypes: ActionType[],
 ): string {
   const lines: string[] = [
     `# ${useCase.name}`,
@@ -275,7 +296,23 @@ function buildUseCaseDoc(
       : '_No related roles defined._'
   lines.push('## Related Roles', '', relatedRolesList, '')
 
-  const acceptanceCriteria = buildAcceptanceCriteria(useCase.name)
+  const relatedActionTypesList =
+    actionTypes.length > 0
+      ? actionTypes
+          .map(
+            (actionType) =>
+              toMarkdownListItem(
+                `[${actionType.name}](../../action-types/${toSlug(actionType.name) || 'action-type'}/): ${withFallback(actionType.description, 'No description.')}`,
+              ),
+          )
+          .join('\n')
+      : '_No related action types defined._'
+  lines.push('## Related Action Types', '', relatedActionTypesList, '')
+
+  const acceptanceCriteria =
+    actionTypes.length > 0
+      ? Array.from(new Set(actionTypes.flatMap((actionType) => actionType.acceptanceCriteria))).filter((value) => value.trim().length > 0)
+      : buildAcceptanceCriteria(useCase.name)
   lines.push(
     '## Suggested Acceptance Criteria',
     '',
@@ -283,6 +320,37 @@ function buildUseCaseDoc(
     '',
   )
   return lines.join('\n')
+}
+
+function buildActionTypeDoc(actionType: ActionType, relatedUseCases: { name: string }[]): string {
+  const relatedUseCaseList =
+    relatedUseCases.length > 0
+      ? relatedUseCases
+          .map((useCase) => toMarkdownListItem(`[${useCase.name}](../../use-cases/${toSlug(useCase.name) || 'use-case'}/)`))
+          .join('\n')
+      : '_No related use cases defined._'
+
+  const criteriaList =
+    actionType.acceptanceCriteria.length > 0
+      ? actionType.acceptanceCriteria.map(toMarkdownListItem).join('\n')
+      : '_No acceptance criteria defined._'
+
+  return [
+    `# ${actionType.name}`,
+    '',
+    '## Summary',
+    '',
+    withFallback(actionType.description, 'No description provided.'),
+    '',
+    '## Acceptance Criteria',
+    '',
+    criteriaList,
+    '',
+    '## Related Use Cases',
+    '',
+    relatedUseCaseList,
+    '',
+  ].join('\n')
 }
 
 function buildDataDomainDoc(domain: DataDomain, attributes: DataDomainAttribute[], relatedUseCases: { name: string }[]): string {
@@ -344,7 +412,21 @@ export async function generateProjectDocZip(project: Project): Promise<ArrayBuff
       const knownRole = project.roles.find((role) => role.name === roleName)
       return knownRole ?? { name: roleName, description: '' }
     })
-    zip.file(`${projectSlug}/use-cases/${slug}/index.md`, buildUseCaseDoc(useCase, relatedDomains, relatedRoles))
+    const relatedActionTypeNames = project.useCaseActionTypes[useCase.name] ?? []
+    const relatedActionTypes = relatedActionTypeNames.map((actionTypeName) => {
+      const knownActionType = project.actionTypes.find((actionType) => actionType.name === actionTypeName)
+      return knownActionType ?? { name: actionTypeName, description: '', acceptanceCriteria: [] }
+    })
+    zip.file(`${projectSlug}/use-cases/${slug}/index.md`, buildUseCaseDoc(useCase, relatedDomains, relatedRoles, relatedActionTypes))
+  })
+
+  project.actionTypes.forEach((actionType, actionTypeIndex) => {
+    const slug = toSlug(actionType.name) || `action-type-${actionTypeIndex + 1}`
+    const relatedUseCases = project.useCases.filter((useCase) => {
+      const linkedActionTypes = project.useCaseActionTypes[useCase.name] ?? []
+      return linkedActionTypes.includes(actionType.name)
+    })
+    zip.file(`${projectSlug}/action-types/${slug}/index.md`, buildActionTypeDoc(actionType, relatedUseCases))
   })
 
   project.dataDomains.forEach((domain, domainIndex) => {

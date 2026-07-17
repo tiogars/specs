@@ -14,6 +14,9 @@ const mockRepository: ProjectRepository = {
   addProjectUseCase: vi.fn(),
   updateProjectUseCase: vi.fn(),
   removeProjectUseCase: vi.fn(),
+  addProjectActionType: vi.fn(),
+  updateProjectActionType: vi.fn(),
+  removeProjectActionType: vi.fn(),
   addProjectDataDomain: vi.fn(),
   updateProjectDataDomain: vi.fn(),
   removeProjectDataDomain: vi.fn(),
@@ -23,6 +26,9 @@ const mockRepository: ProjectRepository = {
   getUseCaseRoles: vi.fn(),
   addUseCaseRole: vi.fn(),
   removeUseCaseRole: vi.fn(),
+  getUseCaseActionTypes: vi.fn(),
+  addUseCaseActionType: vi.fn(),
+  removeUseCaseActionType: vi.fn(),
   getDataDomainAttributes: vi.fn(),
   addDataDomainAttribute: vi.fn(),
   updateDataDomainAttribute: vi.fn(),
@@ -61,11 +67,13 @@ describe('DataDomainEditPage', () => {
       isDefault: false,
       roles: [],
       useCases: [],
+      actionTypes: [],
       dataDomains: [
         { name: 'Customer', description: 'Customer information' },
       ],
       useCaseDataDomains: {},
       useCaseRoles: {},
+      useCaseActionTypes: {},
       dataDomainAttributes: {},
     })
     renderComponent()
@@ -84,11 +92,13 @@ describe('DataDomainEditPage', () => {
       isDefault: false,
       roles: [],
       useCases: [],
+      actionTypes: [],
       dataDomains: [
         { name: 'Customer', description: 'Customer data' },
       ],
       useCaseDataDomains: {},
       useCaseRoles: {},
+      useCaseActionTypes: {},
       dataDomainAttributes: {},
     })
     renderComponent()
@@ -106,11 +116,13 @@ describe('DataDomainEditPage', () => {
       isDefault: false,
       roles: [],
       useCases: [],
+      actionTypes: [],
       dataDomains: [
         { name: 'Customer', description: 'Old description' },
       ],
       useCaseDataDomains: {},
       useCaseRoles: {},
+      useCaseActionTypes: {},
       dataDomainAttributes: {},
     })
     vi.mocked(mockRepository.updateProjectDataDomain).mockResolvedValue({
@@ -120,9 +132,11 @@ describe('DataDomainEditPage', () => {
       isDefault: false,
       roles: [],
       useCases: [],
+      actionTypes: [],
       dataDomains: [{ name: 'Client', description: 'New description' }],
       useCaseDataDomains: {},
       useCaseRoles: {},
+      useCaseActionTypes: {},
       dataDomainAttributes: {},
     })
 
@@ -154,9 +168,11 @@ describe('DataDomainEditPage', () => {
       isDefault: false,
       roles: [],
       useCases: [],
+      actionTypes: [],
       dataDomains: [{ name: 'Customer', description: 'Test' }],
       useCaseDataDomains: {},
       useCaseRoles: {},
+      useCaseActionTypes: {},
       dataDomainAttributes: {},
     })
     renderComponent()
@@ -182,9 +198,11 @@ describe('DataDomainEditPage', () => {
       isDefault: false,
       roles: [],
       useCases: [],
+      actionTypes: [],
       dataDomains: [{ name: 'Customer', description: 'Test' }],
       useCaseDataDomains: {},
       useCaseRoles: {},
+      useCaseActionTypes: {},
       dataDomainAttributes: {},
     })
     vi.mocked(mockRepository.updateProjectDataDomain).mockRejectedValue(new Error('Network error'))
@@ -225,9 +243,11 @@ describe('DataDomainEditPage', () => {
       isDefault: false,
       roles: [],
       useCases: [],
+      actionTypes: [],
       dataDomains: [{ name: 'Customer Data', description: 'Test' }],
       useCaseDataDomains: {},
       useCaseRoles: {},
+      useCaseActionTypes: {},
       dataDomainAttributes: {},
     })
     renderComponent()

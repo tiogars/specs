@@ -15,6 +15,12 @@ import UseCaseRolesPage from '../pages/roles/UseCaseRolesPage'
 import ProjectUseCasesPage from '../pages/usecases/ProjectUseCasesPage'
 import UseCaseCreatePage from '../pages/usecases/UseCaseCreatePage'
 import UseCaseEditPage from '../pages/usecases/UseCaseEditPage'
+import ProjectActionTypesPage from '../pages/actiontypes/ProjectActionTypesPage'
+import ActionTypeCreatePage from '../pages/actiontypes/ActionTypeCreatePage'
+import ActionTypeEditPage from '../pages/actiontypes/ActionTypeEditPage'
+import UseCaseActionTypesPage from '../pages/actiontypes/UseCaseActionTypesPage'
+import UseCaseActionTypeLinkPage from '../pages/actiontypes/UseCaseActionTypeLinkPage'
+import UseCaseActionTypeCreatePage from '../pages/actiontypes/UseCaseActionTypeCreatePage'
 import ProjectDataDomainsPage from '../pages/datadomains/ProjectDataDomainsPage'
 import DataDomainCreatePage from '../pages/datadomains/DataDomainCreatePage'
 import DataDomainEditPage from '../pages/datadomains/DataDomainEditPage'
@@ -101,8 +107,20 @@ const App = ({ repository }: AppProps) => {
               element={<UseCaseRolesPage repository={resolvedRepository} />}
             />
             <Route
+              path="/projects/:projectId/use-cases/:ucValue/action-types"
+              element={<UseCaseActionTypesPage repository={resolvedRepository} />}
+            />
+            <Route
               path="/projects/:projectId/use-cases/:ucValue/roles/link"
               element={<UseCaseRoleLinkPage repository={resolvedRepository} />}
+            />
+            <Route
+              path="/projects/:projectId/use-cases/:ucValue/action-types/link"
+              element={<UseCaseActionTypeLinkPage repository={resolvedRepository} />}
+            />
+            <Route
+              path="/projects/:projectId/use-cases/:ucValue/action-types/new"
+              element={<UseCaseActionTypeCreatePage repository={resolvedRepository} />}
             />
             <Route
               path="/projects/:projectId/use-cases/:ucValue/data-domains/link"
@@ -111,6 +129,18 @@ const App = ({ repository }: AppProps) => {
             <Route
               path="/projects/:projectId/use-cases/:ucValue/data-domains/new"
               element={<UseCaseDataDomainCreatePage repository={resolvedRepository} />}
+            />
+            <Route
+              path="/projects/:projectId/action-types"
+              element={<ProjectActionTypesPage repository={resolvedRepository} />}
+            />
+            <Route
+              path="/projects/:projectId/action-types/new"
+              element={<ActionTypeCreatePage repository={resolvedRepository} />}
+            />
+            <Route
+              path="/projects/:projectId/action-types/edit/:actionTypeValue"
+              element={<ActionTypeEditPage repository={resolvedRepository} />}
             />
             <Route
               path="/projects/:projectId/data-domains"

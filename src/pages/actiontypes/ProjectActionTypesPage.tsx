@@ -17,29 +17,25 @@ import {
   ListItemIcon,
   ListItemText,
   Stack,
-  Tooltip,
   Typography,
 } from '@mui/material'
 import AddCircleIcon from '@mui/icons-material/AddCircle'
-import AutoStoriesIcon from '@mui/icons-material/AutoStories'
 import DeleteIcon from '@mui/icons-material/Delete'
 import EditIcon from '@mui/icons-material/Edit'
 import FactCheckIcon from '@mui/icons-material/FactCheck'
-import GroupsIcon from '@mui/icons-material/Groups'
-import StorageIcon from '@mui/icons-material/Storage'
 import type { ProjectRepository } from '../../projectRepository'
 
-type ProjectUseCasesPageProps = {
+type ProjectActionTypesPageProps = {
   repository: ProjectRepository
 }
 
-const ProjectUseCasesPage = ({ repository }: ProjectUseCasesPageProps) => {
+const ProjectActionTypesPage = ({ repository }: ProjectActionTypesPageProps) => {
   const { projectId } = useParams()
   const navigate = useNavigate()
   const [loading, setLoading] = useState(true)
   const [project, setProject] = useState<Awaited<ReturnType<ProjectRepository['getProject']>>>(null)
   const [error, setError] = useState<string | null>(null)
-  const [useCasePendingDeletion, setUseCasePendingDeletion] = useState<string | null>(null)
+  const [actionTypePendingDeletion, setActionTypePendingDeletion] = useState<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -81,17 +77,17 @@ const ProjectUseCasesPage = ({ repository }: ProjectUseCasesPageProps) => {
     )
   }
 
-  const handleConfirmDeleteUseCase = async () => {
-    if (!useCasePendingDeletion) return
+  const handleConfirmDeleteActionType = async () => {
+    if (!actionTypePendingDeletion) return
     setError(null)
     try {
-      const updated = await repository.removeProjectUseCase(project.id, useCasePendingDeletion)
+      const updated = await repository.removeProjectActionType(project.id, actionTypePendingDeletion)
       if (!updated) {
-        setError('Unable to delete use case. Project may have been deleted.')
+        setError('Unable to delete action type. Project may have been deleted.')
         return
       }
       setProject(updated)
-      setUseCasePendingDeletion(null)
+      setActionTypePendingDeletion(null)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unable to update this project.')
     }
@@ -100,14 +96,14 @@ const ProjectUseCasesPage = ({ repository }: ProjectUseCasesPageProps) => {
   return (
     <Stack spacing={3}>
       <Stack direction="row" spacing={2} sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
-        <Typography variant="h4">Use cases — {project.name}</Typography>
+        <Typography variant="h4">Action types — {project.name}</Typography>
         <Button
           component={RouterLink}
-          to={`/projects/${project.id}/use-cases/new`}
+          to={`/projects/${project.id}/action-types/new`}
           startIcon={<AddCircleIcon />}
           variant="contained"
         >
-          Add use case
+          Add action type
         </Button>
       </Stack>
 
@@ -115,13 +111,13 @@ const ProjectUseCasesPage = ({ repository }: ProjectUseCasesPageProps) => {
 
       <Card>
         <CardContent>
-          {project.useCases.length === 0 ? (
-            <Typography color="text.secondary">No use cases yet. Add your first use case above.</Typography>
+          {project.actionTypes.length === 0 ? (
+            <Typography color="text.secondary">No action types yet. Add your first action type above.</Typography>
           ) : (
             <List>
-              {project.useCases.map((useCase) => (
+              {project.actionTypes.map((actionType) => (
                 <ListItem
-                  key={useCase.name}
+                  key={actionType.name}
                   disableGutters
                   sx={{
                     alignItems: { xs: 'flex-start', sm: 'center' },
@@ -131,9 +127,16 @@ const ProjectUseCasesPage = ({ repository }: ProjectUseCasesPageProps) => {
                 >
                   <Stack direction="row" spacing={1} sx={{ minWidth: 0, flex: 1, width: '100%' }}>
                     <ListItemIcon sx={{ minWidth: 40, mt: 0.5 }}>
-                      <AutoStoriesIcon />
+                      <FactCheckIcon />
                     </ListItemIcon>
-                    <ListItemText primary={useCase.name} secondary={useCase.description || undefined} />
+                    <ListItemText
+                      primary={actionType.name}
+                      secondary={
+                        actionType.description
+                          ? `${actionType.description} (${actionType.acceptanceCriteria.length} criteria)`
+                          : `${actionType.acceptanceCriteria.length} criteria`
+                      }
+                    />
                   </Stack>
                   <Stack
                     direction="row"
@@ -144,44 +147,17 @@ const ProjectUseCasesPage = ({ repository }: ProjectUseCasesPageProps) => {
                       alignSelf: { xs: 'flex-start', sm: 'center' },
                     }}
                   >
-                    <Tooltip title="Manage roles">
-                      <IconButton
-                        aria-label={`Manage roles for use case: ${useCase.name}`}
-                        component={RouterLink}
-                        to={`/projects/${project.id}/use-cases/${encodeURIComponent(useCase.name)}/roles`}
-                      >
-                        <GroupsIcon />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title="Manage data domains">
-                      <IconButton
-                        aria-label={`Manage data domains for use case: ${useCase.name}`}
-                        component={RouterLink}
-                        to={`/projects/${project.id}/use-cases/${encodeURIComponent(useCase.name)}/data-domains`}
-                      >
-                        <StorageIcon />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title="Manage action types">
-                      <IconButton
-                        aria-label={`Manage action types for use case: ${useCase.name}`}
-                        component={RouterLink}
-                        to={`/projects/${project.id}/use-cases/${encodeURIComponent(useCase.name)}/action-types`}
-                      >
-                        <FactCheckIcon />
-                      </IconButton>
-                    </Tooltip>
                     <IconButton
-                      aria-label={`Edit use case: ${useCase.name}`}
+                      aria-label={`Edit action type: ${actionType.name}`}
                       onClick={() =>
-                        navigate(`/projects/${project.id}/use-cases/edit/${encodeURIComponent(useCase.name)}`)
+                        navigate(`/projects/${project.id}/action-types/edit/${encodeURIComponent(actionType.name)}`)
                       }
                     >
                       <EditIcon />
                     </IconButton>
                     <IconButton
-                      aria-label={`Delete use case: ${useCase.name}`}
-                      onClick={() => setUseCasePendingDeletion(useCase.name)}
+                      aria-label={`Delete action type: ${actionType.name}`}
+                      onClick={() => setActionTypePendingDeletion(actionType.name)}
                     >
                       <DeleteIcon />
                     </IconButton>
@@ -193,17 +169,17 @@ const ProjectUseCasesPage = ({ repository }: ProjectUseCasesPageProps) => {
         </CardContent>
       </Card>
 
-      <Dialog open={Boolean(useCasePendingDeletion)} onClose={() => setUseCasePendingDeletion(null)}>
-        <DialogTitle>Delete use case</DialogTitle>
+      <Dialog open={Boolean(actionTypePendingDeletion)} onClose={() => setActionTypePendingDeletion(null)}>
+        <DialogTitle>Delete action type</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            {`Are you sure you want to delete "${useCasePendingDeletion}" from this project?`}
+            {`Are you sure you want to delete "${actionTypePendingDeletion}" from this project? It will also be removed from linked use cases.`}
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setUseCasePendingDeletion(null)}>Cancel</Button>
-          <Button color="error" onClick={handleConfirmDeleteUseCase} variant="contained">
-            Confirm delete use case
+          <Button onClick={() => setActionTypePendingDeletion(null)}>Cancel</Button>
+          <Button color="error" onClick={handleConfirmDeleteActionType} variant="contained">
+            Confirm delete action type
           </Button>
         </DialogActions>
       </Dialog>
@@ -211,4 +187,4 @@ const ProjectUseCasesPage = ({ repository }: ProjectUseCasesPageProps) => {
   )
 }
 
-export default ProjectUseCasesPage
+export default ProjectActionTypesPage

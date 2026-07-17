@@ -14,6 +14,7 @@ import {
 } from '@mui/material'
 import AddCircleIcon from '@mui/icons-material/AddCircle'
 import AutoStoriesIcon from '@mui/icons-material/AutoStories'
+import FactCheckIcon from '@mui/icons-material/FactCheck'
 import FolderIcon from '@mui/icons-material/Folder'
 import GroupsIcon from '@mui/icons-material/Groups'
 import ListIcon from '@mui/icons-material/List'
@@ -86,6 +87,25 @@ const AppDrawer = ({ open, onClose, variant }: AppDrawerProps) => {
           label: 'Add use case',
           icon: <AddCircleIcon />,
           to: projectId ? `/projects/${projectId}/use-cases/new` : '/projects',
+          disabled: !projectId,
+          disabledReason: 'Select a project first',
+        },
+      ],
+    },
+    {
+      title: 'Action types',
+      items: [
+        {
+          label: 'View action types',
+          icon: <FactCheckIcon />,
+          to: projectId ? `/projects/${projectId}/action-types` : '/projects',
+          disabled: !projectId,
+          disabledReason: 'Select a project first',
+        },
+        {
+          label: 'Add action type',
+          icon: <AddCircleIcon />,
+          to: projectId ? `/projects/${projectId}/action-types/new` : '/projects',
           disabled: !projectId,
           disabledReason: 'Select a project first',
         },
