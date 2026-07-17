@@ -72,7 +72,7 @@ export async function generateProjectDocZip(project: Project): Promise<ArrayBuff
   const projectSlug = toSlug(project.name) || 'project'
   const zip = new JSZip()
 
-  zip.file(`${projectSlug}/README.md`, buildReadme(project))
+  zip.file(`${projectSlug}/index.md`, buildReadme(project))
 
   project.roles.forEach((role, index) => {
     const slug = toSlug(role.name) || `role-${index + 1}`
