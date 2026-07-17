@@ -9,8 +9,15 @@ import JSZip from 'jszip'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { generateProjectDocZip } from '../src/generateProjectDocZip.ts'
-import { DEFAULT_PROJECT_NAME, DEFAULT_PROJECT_ROLES, DEFAULT_PROJECT_USE_CASES } from '../src/projectRepository.ts'
+import { generateProjectDocZip, toSlug } from '../src/generateProjectDocZip.ts'
+import {
+  DEFAULT_PROJECT_DATA_DOMAINS,
+  DEFAULT_PROJECT_DATA_DOMAIN_ATTRIBUTES,
+  DEFAULT_PROJECT_NAME,
+  DEFAULT_PROJECT_ROLES,
+  DEFAULT_PROJECT_USE_CASES,
+  DEFAULT_PROJECT_USE_CASE_DATA_DOMAINS,
+} from '../src/projectRepository.ts'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const repoRoot = path.resolve(__dirname, '..')
@@ -23,7 +30,7 @@ const defaultProject = {
   isDefault: true,
   roles: DEFAULT_PROJECT_ROLES.map((name) => ({ name, description: '' })),
   useCases: DEFAULT_PROJECT_USE_CASES.map((name) => ({ name, description: '' })),
-  dataDomains: [],
+  dataDomains: DEFAULT_PROJECT_DATA_DOMAINS.map((name) => ({ name, description: '' })),
 }
 
 const zipBuffer = await generateProjectDocZip(defaultProject)
@@ -46,6 +53,36 @@ for (const [zipPath, file] of Object.entries(zip.files)) {
   fs.mkdirSync(path.dirname(fullPath), { recursive: true })
   const content = await file.async('nodebuffer')
   fs.writeFileSync(fullPath, content)
+}
+
+function appendListSection(content: string, heading: string, values: string[], emptyText: string): string {
+  const listBody = values.length > 0 ? values.map((value) => `- ${value}`).join('\n') : emptyText
+  return `${content.trimEnd()}\n\n## ${heading}\n\n${listBody}\n`
+}
+
+for (const useCase of DEFAULT_PROJECT_USE_CASES) {
+  const relatedDataDomains = DEFAULT_PROJECT_USE_CASE_DATA_DOMAINS[useCase] ?? []
+  const relativePath = path.join('use-cases', `${toSlug(useCase)}.md`)
+  const fullPath = path.join(docsDir, relativePath)
+  if (!fs.existsSync(fullPath)) continue
+
+  const original = fs.readFileSync(fullPath, 'utf8')
+  if (original.includes('## Related Data Domains')) continue
+  fs.writeFileSync(
+    fullPath,
+    appendListSection(original, 'Related Data Domains', relatedDataDomains, '_No related data domains defined._'),
+  )
+}
+
+for (const dataDomain of DEFAULT_PROJECT_DATA_DOMAINS) {
+  const attributes = DEFAULT_PROJECT_DATA_DOMAIN_ATTRIBUTES[dataDomain] ?? []
+  const relativePath = path.join('data-domains', `${toSlug(dataDomain)}.md`)
+  const fullPath = path.join(docsDir, relativePath)
+  if (!fs.existsSync(fullPath)) continue
+
+  const original = fs.readFileSync(fullPath, 'utf8')
+  if (original.includes('## Attributes')) continue
+  fs.writeFileSync(fullPath, appendListSection(original, 'Attributes', attributes, '_No attributes defined._'))
 }
 
 console.log(`Generated documentation for "${DEFAULT_PROJECT_NAME}" in ${docsDir}`)

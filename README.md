@@ -38,4 +38,4 @@ pnpm build
    - `DEFAULT_PROJECT_ROLES`
    - `DEFAULT_PROJECT_USE_CASES`
 2. Commit and push to `main` (or run the **Deploy Pages** workflow manually with `workflow_dispatch`).
-3. During the GitHub workflow, the `Generate self-documentation` step runs `scripts/generate-default-docs.ts`, reloads values from the `specs (default)` seed, and rebuilds `/docs` before publishing.
+3. During the GitHub workflow, the `Generate self-documentation` step runs `scripts/generate-default-docs.ts`, reloads values from the `specs (default)` seed, and rebuilds `/docs` before publishing, including role/use-case lists, data domains, use-case-to-data-domain links, and data-domain attributes.

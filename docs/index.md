@@ -23,6 +23,17 @@
 - View saved data domains
 - Add a data domain to a use case
 - Create a data domain then add to a use case
+- Add a data domain attribute
+- Edit a data domain attribute
+- Delete a data domain attribute
 - Download documentation as ZIP
 - Use the app offline (PWA)
 - Deploy app to GitHub Pages
+
+## Data Domains
+
+- Project
+- Role
+- Use Case
+- Data Domain
+- Data Domain Attribute
