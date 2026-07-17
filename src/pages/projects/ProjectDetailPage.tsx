@@ -106,7 +106,7 @@ const ProjectDetailPage = ({ repository }: ProjectDetailPageProps) => {
       </Stack>
       {project.description ? <Typography color="text.secondary">{project.description}</Typography> : null}
 
-      <Stack direction="row" spacing={2}>
+      <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
         <Card variant="outlined" sx={{ flex: 1 }}>
           <CardContent>
             <Stack spacing={2}>

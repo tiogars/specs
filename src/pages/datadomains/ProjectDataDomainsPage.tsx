@@ -120,41 +120,50 @@ const ProjectDataDomainsPage = ({ repository }: ProjectDataDomainsPageProps) => 
                 <ListItem
                   key={domain.name}
                   disableGutters
-                  secondaryAction={
-                    <Stack direction="row" spacing={1}>
-                      <IconButton
-                        aria-label={`Manage attributes for data domain: ${domain.name}`}
-                        onClick={() =>
-                          navigate(
-                            `/projects/${project.id}/data-domains/${encodeURIComponent(domain.name)}/attributes`,
-                          )
-                        }
-                      >
-                        <LabelIcon />
-                      </IconButton>
-                      <IconButton
-                        aria-label={`Edit data domain: ${domain.name}`}
-                        onClick={() =>
-                          navigate(
-                            `/projects/${project.id}/data-domains/edit/${encodeURIComponent(domain.name)}`,
-                          )
-                        }
-                      >
-                        <EditIcon />
-                      </IconButton>
-                      <IconButton
-                        aria-label={`Delete data domain: ${domain.name}`}
-                        onClick={() => setDomainPendingDeletion(domain.name)}
-                      >
-                        <DeleteIcon />
-                      </IconButton>
-                    </Stack>
-                  }
+                  sx={{
+                    alignItems: { xs: 'flex-start', sm: 'center' },
+                    flexDirection: { xs: 'column', sm: 'row' },
+                    gap: { xs: 1, sm: 0 },
+                  }}
                 >
-                  <ListItemIcon>
-                    <StorageIcon />
-                  </ListItemIcon>
-                  <ListItemText primary={domain.name} secondary={domain.description || undefined} />
+                  <Stack direction="row" spacing={1} sx={{ minWidth: 0, flex: 1, width: '100%' }}>
+                    <ListItemIcon sx={{ minWidth: 40, mt: 0.5 }}>
+                      <StorageIcon />
+                    </ListItemIcon>
+                    <ListItemText primary={domain.name} secondary={domain.description || undefined} />
+                  </Stack>
+                  <Stack
+                    direction="row"
+                    spacing={1}
+                    sx={{
+                      pl: { xs: 5, sm: 0 },
+                      ml: { sm: 'auto' },
+                      alignSelf: { xs: 'flex-start', sm: 'center' },
+                    }}
+                  >
+                    <IconButton
+                      aria-label={`Manage attributes for data domain: ${domain.name}`}
+                      onClick={() =>
+                        navigate(`/projects/${project.id}/data-domains/${encodeURIComponent(domain.name)}/attributes`)
+                      }
+                    >
+                      <LabelIcon />
+                    </IconButton>
+                    <IconButton
+                      aria-label={`Edit data domain: ${domain.name}`}
+                      onClick={() =>
+                        navigate(`/projects/${project.id}/data-domains/edit/${encodeURIComponent(domain.name)}`)
+                      }
+                    >
+                      <EditIcon />
+                    </IconButton>
+                    <IconButton
+                      aria-label={`Delete data domain: ${domain.name}`}
+                      onClick={() => setDomainPendingDeletion(domain.name)}
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </Stack>
                 </ListItem>
               ))}
             </List>

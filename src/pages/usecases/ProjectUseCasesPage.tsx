@@ -122,49 +122,60 @@ const ProjectUseCasesPage = ({ repository }: ProjectUseCasesPageProps) => {
                 <ListItem
                   key={useCase.name}
                   disableGutters
-                  secondaryAction={
-                    <Stack direction="row" spacing={1}>
-                      <Tooltip title="Manage roles">
-                        <IconButton
-                          aria-label={`Manage roles for use case: ${useCase.name}`}
-                          component={RouterLink}
-                          to={`/projects/${project.id}/use-cases/${encodeURIComponent(useCase.name)}/roles`}
-                        >
-                          <GroupsIcon />
-                        </IconButton>
-                      </Tooltip>
-                      <Tooltip title="Manage data domains">
-                        <IconButton
-                          aria-label={`Manage data domains for use case: ${useCase.name}`}
-                          component={RouterLink}
-                          to={`/projects/${project.id}/use-cases/${encodeURIComponent(useCase.name)}/data-domains`}
-                        >
-                          <StorageIcon />
-                        </IconButton>
-                      </Tooltip>
-                      <IconButton
-                        aria-label={`Edit use case: ${useCase.name}`}
-                        onClick={() =>
-                          navigate(
-                            `/projects/${project.id}/use-cases/edit/${encodeURIComponent(useCase.name)}`,
-                          )
-                        }
-                      >
-                        <EditIcon />
-                      </IconButton>
-                      <IconButton
-                        aria-label={`Delete use case: ${useCase.name}`}
-                        onClick={() => setUseCasePendingDeletion(useCase.name)}
-                      >
-                        <DeleteIcon />
-                      </IconButton>
-                    </Stack>
-                  }
+                  sx={{
+                    alignItems: { xs: 'flex-start', sm: 'center' },
+                    flexDirection: { xs: 'column', sm: 'row' },
+                    gap: { xs: 1, sm: 0 },
+                  }}
                 >
-                  <ListItemIcon>
-                    <AutoStoriesIcon />
-                  </ListItemIcon>
-                  <ListItemText primary={useCase.name} secondary={useCase.description || undefined} />
+                  <Stack direction="row" spacing={1} sx={{ minWidth: 0, flex: 1, width: '100%' }}>
+                    <ListItemIcon sx={{ minWidth: 40, mt: 0.5 }}>
+                      <AutoStoriesIcon />
+                    </ListItemIcon>
+                    <ListItemText primary={useCase.name} secondary={useCase.description || undefined} />
+                  </Stack>
+                  <Stack
+                    direction="row"
+                    spacing={1}
+                    sx={{
+                      pl: { xs: 5, sm: 0 },
+                      ml: { sm: 'auto' },
+                      alignSelf: { xs: 'flex-start', sm: 'center' },
+                    }}
+                  >
+                    <Tooltip title="Manage roles">
+                      <IconButton
+                        aria-label={`Manage roles for use case: ${useCase.name}`}
+                        component={RouterLink}
+                        to={`/projects/${project.id}/use-cases/${encodeURIComponent(useCase.name)}/roles`}
+                      >
+                        <GroupsIcon />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Manage data domains">
+                      <IconButton
+                        aria-label={`Manage data domains for use case: ${useCase.name}`}
+                        component={RouterLink}
+                        to={`/projects/${project.id}/use-cases/${encodeURIComponent(useCase.name)}/data-domains`}
+                      >
+                        <StorageIcon />
+                      </IconButton>
+                    </Tooltip>
+                    <IconButton
+                      aria-label={`Edit use case: ${useCase.name}`}
+                      onClick={() =>
+                        navigate(`/projects/${project.id}/use-cases/edit/${encodeURIComponent(useCase.name)}`)
+                      }
+                    >
+                      <EditIcon />
+                    </IconButton>
+                    <IconButton
+                      aria-label={`Delete use case: ${useCase.name}`}
+                      onClick={() => setUseCasePendingDeletion(useCase.name)}
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </Stack>
                 </ListItem>
               ))}
             </List>

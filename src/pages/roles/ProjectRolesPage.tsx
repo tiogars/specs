@@ -119,29 +119,40 @@ const ProjectRolesPage = ({ repository }: ProjectRolesPageProps) => {
                 <ListItem
                   key={role.name}
                   disableGutters
-                  secondaryAction={
-                    <Stack direction="row" spacing={1}>
-                      <IconButton
-                        aria-label={`Edit role: ${role.name}`}
-                        onClick={() =>
-                          navigate(`/projects/${project.id}/roles/edit/${encodeURIComponent(role.name)}`)
-                        }
-                      >
-                        <EditIcon />
-                      </IconButton>
-                      <IconButton
-                        aria-label={`Delete role: ${role.name}`}
-                        onClick={() => setRolePendingDeletion(role.name)}
-                      >
-                        <DeleteIcon />
-                      </IconButton>
-                    </Stack>
-                  }
+                  sx={{
+                    alignItems: { xs: 'flex-start', sm: 'center' },
+                    flexDirection: { xs: 'column', sm: 'row' },
+                    gap: { xs: 1, sm: 0 },
+                  }}
                 >
-                  <ListItemIcon>
-                    <GroupsIcon />
-                  </ListItemIcon>
-                  <ListItemText primary={role.name} secondary={role.description || undefined} />
+                  <Stack direction="row" spacing={1} sx={{ minWidth: 0, flex: 1, width: '100%' }}>
+                    <ListItemIcon sx={{ minWidth: 40, mt: 0.5 }}>
+                      <GroupsIcon />
+                    </ListItemIcon>
+                    <ListItemText primary={role.name} secondary={role.description || undefined} />
+                  </Stack>
+                  <Stack
+                    direction="row"
+                    spacing={1}
+                    sx={{
+                      pl: { xs: 5, sm: 0 },
+                      ml: { sm: 'auto' },
+                      alignSelf: { xs: 'flex-start', sm: 'center' },
+                    }}
+                  >
+                    <IconButton
+                      aria-label={`Edit role: ${role.name}`}
+                      onClick={() => navigate(`/projects/${project.id}/roles/edit/${encodeURIComponent(role.name)}`)}
+                    >
+                      <EditIcon />
+                    </IconButton>
+                    <IconButton
+                      aria-label={`Delete role: ${role.name}`}
+                      onClick={() => setRolePendingDeletion(role.name)}
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </Stack>
                 </ListItem>
               ))}
             </List>

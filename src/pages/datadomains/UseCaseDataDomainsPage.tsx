@@ -136,19 +136,34 @@ const UseCaseDataDomainsPage = ({ repository }: UseCaseDataDomainsPageProps) => 
                 <ListItem
                   key={domain.name}
                   disableGutters
-                  secondaryAction={
+                  sx={{
+                    alignItems: { xs: 'flex-start', sm: 'center' },
+                    flexDirection: { xs: 'column', sm: 'row' },
+                    gap: { xs: 1, sm: 0 },
+                  }}
+                >
+                  <Stack direction="row" spacing={1} sx={{ minWidth: 0, flex: 1, width: '100%' }}>
+                    <ListItemIcon sx={{ minWidth: 40, mt: 0.5 }}>
+                      <StorageIcon />
+                    </ListItemIcon>
+                    <ListItemText primary={domain.name} secondary={domain.description || undefined} />
+                  </Stack>
+                  <Stack
+                    direction="row"
+                    spacing={1}
+                    sx={{
+                      pl: { xs: 5, sm: 0 },
+                      ml: { sm: 'auto' },
+                      alignSelf: { xs: 'flex-start', sm: 'center' },
+                    }}
+                  >
                     <IconButton
                       aria-label={`Remove data domain link: ${domain.name}`}
                       onClick={() => handleRemoveDomain(domain.name)}
                     >
                       <DeleteIcon />
                     </IconButton>
-                  }
-                >
-                  <ListItemIcon>
-                    <StorageIcon />
-                  </ListItemIcon>
-                  <ListItemText primary={domain.name} secondary={domain.description || undefined} />
+                  </Stack>
                 </ListItem>
               ))}
             </List>

@@ -131,28 +131,41 @@ const DataDomainAttributesPage = ({ repository }: DataDomainAttributesPageProps)
                 <ListItem
                   key={attr.name}
                   disableGutters
-                  secondaryAction={
-                    <Stack direction="row" spacing={1}>
-                      <IconButton
-                        aria-label={`Edit attribute: ${attr.name}`}
-                        component={RouterLink}
-                        to={`/projects/${projectId}/data-domains/${domainValue}/attributes/edit/${encodeURIComponent(attr.name)}`}
-                      >
-                        <EditIcon />
-                      </IconButton>
-                      <IconButton
-                        aria-label={`Delete attribute: ${attr.name}`}
-                        onClick={() => setAttributePendingDeletion(attr.name)}
-                      >
-                        <DeleteIcon />
-                      </IconButton>
-                    </Stack>
-                  }
+                  sx={{
+                    alignItems: { xs: 'flex-start', sm: 'center' },
+                    flexDirection: { xs: 'column', sm: 'row' },
+                    gap: { xs: 1, sm: 0 },
+                  }}
                 >
-                  <ListItemIcon>
-                    <LabelIcon />
-                  </ListItemIcon>
-                  <ListItemText primary={attr.name} secondary={attr.description || undefined} />
+                  <Stack direction="row" spacing={1} sx={{ minWidth: 0, flex: 1, width: '100%' }}>
+                    <ListItemIcon sx={{ minWidth: 40, mt: 0.5 }}>
+                      <LabelIcon />
+                    </ListItemIcon>
+                    <ListItemText primary={attr.name} secondary={attr.description || undefined} />
+                  </Stack>
+                  <Stack
+                    direction="row"
+                    spacing={1}
+                    sx={{
+                      pl: { xs: 5, sm: 0 },
+                      ml: { sm: 'auto' },
+                      alignSelf: { xs: 'flex-start', sm: 'center' },
+                    }}
+                  >
+                    <IconButton
+                      aria-label={`Edit attribute: ${attr.name}`}
+                      component={RouterLink}
+                      to={`/projects/${projectId}/data-domains/${domainValue}/attributes/edit/${encodeURIComponent(attr.name)}`}
+                    >
+                      <EditIcon />
+                    </IconButton>
+                    <IconButton
+                      aria-label={`Delete attribute: ${attr.name}`}
+                      onClick={() => setAttributePendingDeletion(attr.name)}
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </Stack>
                 </ListItem>
               ))}
             </List>
