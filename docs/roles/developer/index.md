@@ -8,3 +8,7 @@ A software developer who builds and maintains the application
 
 - Define this role contribution to each relevant use case.
 - Keep role permissions and expectations explicit and testable.
+
+## Related Use Cases
+
+_No related use cases defined._

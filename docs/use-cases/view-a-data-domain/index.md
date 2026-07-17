@@ -8,6 +8,10 @@ Inspect the details and attributes of a data domain
 
 - [Data Domain](../../data-domains/data-domain/): A logical grouping of related data with typed attributes
 
+## Related Roles
+
+- [End User](../../roles/end-user/): A person who uses the app to create and manage project specifications
+
 ## Suggested Acceptance Criteria
 
 - The user can open the relevant listing or detail page from navigation.

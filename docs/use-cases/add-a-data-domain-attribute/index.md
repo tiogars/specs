@@ -9,6 +9,10 @@ Define a new property for a data domain
 - [Data Domain](../../data-domains/data-domain/): A logical grouping of related data with typed attributes
 - [Data Domain Attribute](../../data-domains/data-domain-attribute/): A named property of a data domain with an optional description
 
+## Related Roles
+
+- [End User](../../roles/end-user/): A person who uses the app to create and manage project specifications
+
 ## Suggested Acceptance Criteria
 
 - The user can create or link the target entity with valid input.

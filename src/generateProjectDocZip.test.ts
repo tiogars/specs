@@ -18,6 +18,7 @@ const baseProject: Project = {
   ],
   dataDomains: [],
   useCaseDataDomains: {},
+  useCaseRoles: { 'Create invoice': ['Admin'] },
   dataDomainAttributes: {},
 }
 
@@ -73,6 +74,8 @@ describe('generateProjectDocZip', () => {
 
     expect(adminDoc).toContain('# Admin')
     expect(adminDoc).toContain('Can administer the system.')
+    expect(adminDoc).toContain('## Related Use Cases')
+    expect(adminDoc).toContain('- [Create invoice](../../use-cases/create-invoice/)')
   })
 
   it('use case file contains a heading with the use case name and description', async () => {
@@ -83,6 +86,8 @@ describe('generateProjectDocZip', () => {
     expect(useCaseDoc).toContain('# Create invoice')
     expect(useCaseDoc).toContain('## Goal')
     expect(useCaseDoc).toContain('Allows invoice creation.')
+    expect(useCaseDoc).toContain('## Related Roles')
+    expect(useCaseDoc).toContain('- [Admin](../../roles/admin/): Can administer the system.')
   })
 
   it('handles a project with no roles or use cases', async () => {

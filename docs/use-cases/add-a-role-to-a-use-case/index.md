@@ -1,12 +1,13 @@
-# Delete a use case from a project
+# Add a role to a use case
 
 ## Goal
 
-Remove a use case that is no longer relevant
+Link an existing role to a use case
 
 ## Related Data Domains
 
 - [Project](../../data-domains/project/): A collection of roles, use cases, and data domains that define an application specification
+- [Role](../../data-domains/role/): An actor or user type that participates in use cases
 - [Use Case](../../data-domains/use-case/): A specific interaction or workflow performed by one or more roles
 
 ## Related Roles
@@ -15,6 +16,6 @@ Remove a use case that is no longer relevant
 
 ## Suggested Acceptance Criteria
 
-- A confirmation step prevents accidental deletion.
-- The deleted entity is removed from listings and related references.
-- No orphaned links or stale associations remain after deletion.
+- The user can create or link the target entity with valid input.
+- Duplicate additions are prevented or safely ignored.
+- The new relationship appears in both source and related views.

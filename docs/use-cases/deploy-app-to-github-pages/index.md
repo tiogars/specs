@@ -8,6 +8,10 @@ Publish the application to GitHub Pages via CI/CD
 
 _No related data domains defined._
 
+## Related Roles
+
+- [DevOps Engineer](../../roles/devops-engineer/): An engineer responsible for deployment, infrastructure, and CI/CD pipelines
+
 ## Suggested Acceptance Criteria
 
 - The deployment workflow completes without errors.

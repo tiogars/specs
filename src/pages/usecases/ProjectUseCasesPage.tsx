@@ -24,6 +24,7 @@ import AddCircleIcon from '@mui/icons-material/AddCircle'
 import AutoStoriesIcon from '@mui/icons-material/AutoStories'
 import DeleteIcon from '@mui/icons-material/Delete'
 import EditIcon from '@mui/icons-material/Edit'
+import GroupsIcon from '@mui/icons-material/Groups'
 import StorageIcon from '@mui/icons-material/Storage'
 import type { ProjectRepository } from '../../projectRepository'
 
@@ -123,6 +124,15 @@ const ProjectUseCasesPage = ({ repository }: ProjectUseCasesPageProps) => {
                   disableGutters
                   secondaryAction={
                     <Stack direction="row" spacing={1}>
+                      <Tooltip title="Manage roles">
+                        <IconButton
+                          aria-label={`Manage roles for use case: ${useCase.name}`}
+                          component={RouterLink}
+                          to={`/projects/${project.id}/use-cases/${encodeURIComponent(useCase.name)}/roles`}
+                        >
+                          <GroupsIcon />
+                        </IconButton>
+                      </Tooltip>
                       <Tooltip title="Manage data domains">
                         <IconButton
                           aria-label={`Manage data domains for use case: ${useCase.name}`}

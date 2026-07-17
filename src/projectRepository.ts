@@ -29,6 +29,7 @@ export type Project = {
   useCases: UseCase[]
   dataDomains: DataDomain[]
   useCaseDataDomains: Record<string, string[]>
+  useCaseRoles: Record<string, string[]>
   dataDomainAttributes: Record<string, DataDomainAttribute[]>
 }
 
@@ -65,6 +66,9 @@ export type ProjectRepository = {
   getUseCaseDataDomains: (projectId: number, useCase: string) => Promise<DataDomain[]>
   addUseCaseDataDomain: (projectId: number, useCase: string, domain: string) => Promise<DataDomain[]>
   removeUseCaseDataDomain: (projectId: number, useCase: string, domain: string) => Promise<DataDomain[]>
+  getUseCaseRoles: (projectId: number, useCase: string) => Promise<Role[]>
+  addUseCaseRole: (projectId: number, useCase: string, role: string) => Promise<Role[]>
+  removeUseCaseRole: (projectId: number, useCase: string, role: string) => Promise<Role[]>
   getDataDomainAttributes: (projectId: number, domainValue: string) => Promise<DataDomainAttribute[]>
   addDataDomainAttribute: (projectId: number, domainValue: string, attribute: string, description?: string) => Promise<DataDomainAttribute[]>
   updateDataDomainAttribute: (projectId: number, domainValue: string, currentAttribute: string, nextAttribute: string, nextDescription?: string) => Promise<DataDomainAttribute[]>
@@ -83,8 +87,8 @@ type DbEntityValue = {
   description: string
 }
 
-// v7 adds descriptions to seeded roles, use cases, data domains, and data domain attributes.
-const DEFAULT_PROJECT_SEED_VERSION = '7'
+// v8 adds role-to-use-case links to seeded default project content.
+const DEFAULT_PROJECT_SEED_VERSION = '8'
 
 export const DEFAULT_PROJECT_NAME = 'specs (default)'
 
@@ -97,6 +101,7 @@ export const DEFAULT_PROJECT_ROLES: { name: string; description: string }[] = [
 export const DEFAULT_PROJECT_USE_CASES: { name: string; description: string }[] = [
   { name: 'Create a project', description: 'Create a new project with a name, description, roles, and use cases' },
   { name: 'View saved projects', description: 'Browse and open previously created projects' },
+  { name: 'Add a role to a use case', description: 'Link an existing role to a use case' },
   { name: 'Add a role to a project', description: 'Assign a new actor or user type to the project' },
   { name: 'Edit a role in a project', description: 'Rename or update the description of an existing role' },
   { name: 'Delete a role from a project', description: 'Remove a role that is no longer needed' },
@@ -154,6 +159,7 @@ export const DEFAULT_PROJECT_DATA_DOMAIN_ATTRIBUTES: Record<string, { name: stri
 export const DEFAULT_PROJECT_USE_CASE_DATA_DOMAINS: Record<string, string[]> = {
   'Create a project': ['Project'],
   'View saved projects': ['Project'],
+  'Add a role to a use case': ['Project', 'Role', 'Use Case'],
   'Add a role to a project': ['Project', 'Role'],
   'Edit a role in a project': ['Project', 'Role'],
   'Delete a role from a project': ['Project', 'Role'],
@@ -171,6 +177,31 @@ export const DEFAULT_PROJECT_USE_CASE_DATA_DOMAINS: Record<string, string[]> = {
   'Edit a data domain attribute': ['Data Domain', 'Data Domain Attribute'],
   'Delete a data domain attribute': ['Data Domain', 'Data Domain Attribute'],
   'Download documentation as ZIP': ['Project'],
+}
+
+export const DEFAULT_PROJECT_USE_CASE_ROLES: Record<string, string[]> = {
+  'Create a project': ['End User'],
+  'View saved projects': ['End User'],
+  'Add a role to a use case': ['End User'],
+  'Add a role to a project': ['End User'],
+  'Edit a role in a project': ['End User'],
+  'Delete a role from a project': ['End User'],
+  'Add a use case to a project': ['End User'],
+  'Edit a use case in a project': ['End User'],
+  'Delete a use case from a project': ['End User'],
+  'Create a data domain': ['End User'],
+  'Edit a data domain': ['End User'],
+  'Delete a data domain': ['End User'],
+  'View a data domain': ['End User'],
+  'View saved data domains': ['End User'],
+  'Add a data domain to a use case': ['End User'],
+  'Create a data domain then add to a use case': ['End User'],
+  'Add a data domain attribute': ['End User'],
+  'Edit a data domain attribute': ['End User'],
+  'Delete a data domain attribute': ['End User'],
+  'Download documentation as ZIP': ['End User'],
+  'Use the app offline (PWA)': ['End User'],
+  'Deploy app to GitHub Pages': ['DevOps Engineer'],
 }
 
 const ALLOWED_VALUE_TABLES = ['project_roles', 'project_use_cases', 'project_data_domains'] as const
@@ -227,6 +258,25 @@ async function batchInsertUseCaseDataDomains(
   }
 }
 
+async function batchInsertUseCaseRoles(
+  db: PGlite,
+  projectId: number,
+  links: Record<string, string[]>,
+) {
+  for (const [useCaseValue, roleValues] of Object.entries(links)) {
+    if (roleValues.length === 0) continue
+    const params: (number | string)[] = []
+    const placeholders = roleValues.map((roleValue, index) => {
+      params.push(projectId, useCaseValue, roleValue)
+      return `($${index * 3 + 1}, $${index * 3 + 2}, $${index * 3 + 3})`
+    })
+    await db.query(
+      `INSERT INTO use_case_roles (project_id, use_case_value, role_value) VALUES ${placeholders.join(', ')} ON CONFLICT DO NOTHING`,
+      params,
+    )
+  }
+}
+
 async function seedDefaultProject(db: PGlite) {
   const versionResult = await db.query<{ value: string }>(
     "SELECT value FROM metadata WHERE key = 'default_project_seed_version' LIMIT 1",
@@ -251,6 +301,7 @@ async function seedDefaultProject(db: PGlite) {
     // project_data_domains(id), so they must be deleted explicitly before re-seeding.
     await db.query('DELETE FROM data_domain_attributes WHERE project_id = $1', [projectId])
     await db.query('DELETE FROM use_case_data_domains WHERE project_id = $1', [projectId])
+    await db.query('DELETE FROM use_case_roles WHERE project_id = $1', [projectId])
     await db.query('DELETE FROM project_data_domains WHERE project_id = $1', [projectId])
   } else {
     const insertResult = await db.query<{ id: number }>(
@@ -269,6 +320,7 @@ async function seedDefaultProject(db: PGlite) {
   await batchInsertValues(db, 'project_data_domains', projectId, DEFAULT_PROJECT_DATA_DOMAINS)
   await batchInsertDataDomainAttributes(db, projectId, DEFAULT_PROJECT_DATA_DOMAIN_ATTRIBUTES)
   await batchInsertUseCaseDataDomains(db, projectId, DEFAULT_PROJECT_USE_CASE_DATA_DOMAINS)
+  await batchInsertUseCaseRoles(db, projectId, DEFAULT_PROJECT_USE_CASE_ROLES)
 
   await db.query(
     "INSERT INTO metadata (key, value) VALUES ('default_project_seed_version', $1) ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value",
@@ -329,6 +381,14 @@ async function getDatabase() {
           use_case_value TEXT NOT NULL,
           domain_value TEXT NOT NULL,
           UNIQUE (project_id, use_case_value, domain_value)
+        );
+
+        CREATE TABLE IF NOT EXISTS use_case_roles (
+          id INTEGER GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+          project_id INTEGER NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+          use_case_value TEXT NOT NULL,
+          role_value TEXT NOT NULL,
+          UNIQUE (project_id, use_case_value, role_value)
         );
 
         -- Adds the description column for existing databases; DEFAULT '' ensures backward-compatible
@@ -393,6 +453,19 @@ async function readAllUseCaseDataDomains(db: PGlite, projectId: number): Promise
   return map
 }
 
+async function readAllUseCaseRoles(db: PGlite, projectId: number): Promise<Record<string, string[]>> {
+  const result = await db.query<{ use_case_value: string; role_value: string }>(
+    'SELECT use_case_value, role_value FROM use_case_roles WHERE project_id = $1 ORDER BY id ASC',
+    [projectId],
+  )
+  const map: Record<string, string[]> = {}
+  for (const row of result.rows) {
+    if (!map[row.use_case_value]) map[row.use_case_value] = []
+    map[row.use_case_value].push(row.role_value)
+  }
+  return map
+}
+
 async function readAllDataDomainAttributes(db: PGlite, projectId: number): Promise<Record<string, DataDomainAttribute[]>> {
   const result = await db.query<{ domain_value: string; value: string; description: string }>(
     'SELECT domain_value, value, description FROM data_domain_attributes WHERE project_id = $1 ORDER BY id ASC',
@@ -407,11 +480,12 @@ async function readAllDataDomainAttributes(db: PGlite, projectId: number): Promi
 }
 
 async function hydrateProject(db: PGlite, project: DbProject): Promise<Project> {
-  const [roles, useCases, dataDomains, useCaseDataDomains, dataDomainAttributes] = await Promise.all([
+  const [roles, useCases, dataDomains, useCaseDataDomains, useCaseRoles, dataDomainAttributes] = await Promise.all([
     readList(db, 'project_roles', project.id),
     readList(db, 'project_use_cases', project.id),
     readDataDomains(db, project.id),
     readAllUseCaseDataDomains(db, project.id),
+    readAllUseCaseRoles(db, project.id),
     readAllDataDomainAttributes(db, project.id),
   ])
 
@@ -424,6 +498,7 @@ async function hydrateProject(db: PGlite, project: DbProject): Promise<Project> 
     useCases,
     dataDomains,
     useCaseDataDomains,
+    useCaseRoles,
     dataDomainAttributes,
   }
 }
@@ -561,6 +636,22 @@ export function createPgliteProjectRepository(): ProjectRepository {
         currentRoleRecord.id,
       ])
 
+      await db.query(
+        `DELETE FROM use_case_roles target
+         USING use_case_roles source
+         WHERE target.project_id = source.project_id
+           AND target.use_case_value = source.use_case_value
+           AND target.role_value = $1
+           AND source.project_id = $2
+           AND source.role_value = $3`,
+        [normalizedNextRole, projectId, normalizedCurrentRole],
+      )
+
+      await db.query(
+        'UPDATE use_case_roles SET role_value = $1 WHERE project_id = $2 AND role_value = $3',
+        [normalizedNextRole, projectId, normalizedCurrentRole],
+      )
+
       return hydrateProject(db, project.rows[0])
     },
 
@@ -582,6 +673,11 @@ export function createPgliteProjectRepository(): ProjectRepository {
       if (deleteResult.rows.length === 0) {
         throw new Error('Role not found')
       }
+
+      await db.query('DELETE FROM use_case_roles WHERE project_id = $1 AND role_value = $2', [
+        projectId,
+        normalizedRole,
+      ])
 
       return hydrateProject(db, project.rows[0])
     },
@@ -650,6 +746,16 @@ export function createPgliteProjectRepository(): ProjectRepository {
         currentUseCaseRecord.id,
       ])
 
+      await db.query(
+        'UPDATE use_case_data_domains SET use_case_value = $1 WHERE project_id = $2 AND use_case_value = $3',
+        [normalizedNextUseCase, projectId, normalizedCurrentUseCase],
+      )
+
+      await db.query(
+        'UPDATE use_case_roles SET use_case_value = $1 WHERE project_id = $2 AND use_case_value = $3',
+        [normalizedNextUseCase, projectId, normalizedCurrentUseCase],
+      )
+
       return hydrateProject(db, project.rows[0])
     },
 
@@ -671,6 +777,16 @@ export function createPgliteProjectRepository(): ProjectRepository {
       if (deleteResult.rows.length === 0) {
         throw new Error('Use case not found')
       }
+
+      await db.query('DELETE FROM use_case_data_domains WHERE project_id = $1 AND use_case_value = $2', [
+        projectId,
+        normalizedUseCase,
+      ])
+
+      await db.query('DELETE FROM use_case_roles WHERE project_id = $1 AND use_case_value = $2', [
+        projectId,
+        normalizedUseCase,
+      ])
 
       return hydrateProject(db, project.rows[0])
     },
@@ -843,6 +959,63 @@ export function createPgliteProjectRepository(): ProjectRepository {
         [projectId, useCase],
       )
       return result.rows.map((row) => ({ name: row.domain_value, description: row.description }))
+    },
+
+    async getUseCaseRoles(projectId, useCase) {
+      const db = await getDatabase()
+      const result = await db.query<{ role_value: string; description: string }>(
+        `SELECT ucr.role_value, COALESCE(pr.description, '') AS description
+         FROM use_case_roles ucr
+         LEFT JOIN project_roles pr ON pr.project_id = ucr.project_id AND pr.value = ucr.role_value
+         WHERE ucr.project_id = $1 AND ucr.use_case_value = $2
+         ORDER BY ucr.id ASC`,
+        [projectId, useCase],
+      )
+      return result.rows.map((row) => ({ name: row.role_value, description: row.description }))
+    },
+
+    async addUseCaseRole(projectId, useCase, role) {
+      const db = await getDatabase()
+      const normalizedRole = normalizeAndValidateTextField(role, 'Role')
+
+      await db.query(
+        'INSERT INTO use_case_roles (project_id, use_case_value, role_value) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING',
+        [projectId, useCase, normalizedRole],
+      )
+
+      const result = await db.query<{ role_value: string; description: string }>(
+        `SELECT ucr.role_value, COALESCE(pr.description, '') AS description
+         FROM use_case_roles ucr
+         LEFT JOIN project_roles pr ON pr.project_id = ucr.project_id AND pr.value = ucr.role_value
+         WHERE ucr.project_id = $1 AND ucr.use_case_value = $2
+         ORDER BY ucr.id ASC`,
+        [projectId, useCase],
+      )
+      return result.rows.map((row) => ({ name: row.role_value, description: row.description }))
+    },
+
+    async removeUseCaseRole(projectId, useCase, role) {
+      const db = await getDatabase()
+      const normalizedRole = normalizeAndValidateTextField(role, 'Role')
+
+      const deleteResult = await db.query<{ id: number }>(
+        'DELETE FROM use_case_roles WHERE project_id = $1 AND use_case_value = $2 AND role_value = $3 RETURNING id',
+        [projectId, useCase, normalizedRole],
+      )
+
+      if (deleteResult.rows.length === 0) {
+        throw new Error('Role link not found')
+      }
+
+      const result = await db.query<{ role_value: string; description: string }>(
+        `SELECT ucr.role_value, COALESCE(pr.description, '') AS description
+         FROM use_case_roles ucr
+         LEFT JOIN project_roles pr ON pr.project_id = ucr.project_id AND pr.value = ucr.role_value
+         WHERE ucr.project_id = $1 AND ucr.use_case_value = $2
+         ORDER BY ucr.id ASC`,
+        [projectId, useCase],
+      )
+      return result.rows.map((row) => ({ name: row.role_value, description: row.description }))
     },
 
     async getDataDomainAttributes(projectId, domainValue) {

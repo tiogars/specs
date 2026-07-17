@@ -17,6 +17,7 @@ import {
   DEFAULT_PROJECT_ROLES,
   DEFAULT_PROJECT_USE_CASES,
   DEFAULT_PROJECT_USE_CASE_DATA_DOMAINS,
+  DEFAULT_PROJECT_USE_CASE_ROLES,
 } from '../src/projectRepository.ts'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -33,6 +34,7 @@ const defaultProject = {
   useCases: DEFAULT_PROJECT_USE_CASES,
   dataDomains: DEFAULT_PROJECT_DATA_DOMAINS,
   useCaseDataDomains: DEFAULT_PROJECT_USE_CASE_DATA_DOMAINS,
+  useCaseRoles: DEFAULT_PROJECT_USE_CASE_ROLES,
   dataDomainAttributes: DEFAULT_PROJECT_DATA_DOMAIN_ATTRIBUTES,
 }
 

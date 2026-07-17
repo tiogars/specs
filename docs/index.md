@@ -3,7 +3,7 @@
 ## Overview
 
 - Roles: 3
-- Use Cases: 21
+- Use Cases: 22
 - Data Domains: 5
 
 ## Roles
@@ -16,6 +16,7 @@
 
 - [Create a project](use-cases/create-a-project/): Create a new project with a name, description, roles, and use cases
 - [View saved projects](use-cases/view-saved-projects/): Browse and open previously created projects
+- [Add a role to a use case](use-cases/add-a-role-to-a-use-case/): Link an existing role to a use case
 - [Add a role to a project](use-cases/add-a-role-to-a-project/): Assign a new actor or user type to the project
 - [Edit a role in a project](use-cases/edit-a-role-in-a-project/): Rename or update the description of an existing role
 - [Delete a role from a project](use-cases/delete-a-role-from-a-project/): Remove a role that is no longer needed

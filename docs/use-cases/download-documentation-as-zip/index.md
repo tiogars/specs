@@ -8,6 +8,10 @@ Export the full project specification as a ZIP archive of markdown files
 
 - [Project](../../data-domains/project/): A collection of roles, use cases, and data domains that define an application specification
 
+## Related Roles
+
+- [End User](../../roles/end-user/): A person who uses the app to create and manage project specifications
+
 ## Suggested Acceptance Criteria
 
 - The generated ZIP downloads successfully from the project detail page.

@@ -9,6 +9,10 @@ Remove a property from a data domain
 - [Data Domain](../../data-domains/data-domain/): A logical grouping of related data with typed attributes
 - [Data Domain Attribute](../../data-domains/data-domain-attribute/): A named property of a data domain with an optional description
 
+## Related Roles
+
+- [End User](../../roles/end-user/): A person who uses the app to create and manage project specifications
+
 ## Suggested Acceptance Criteria
 
 - A confirmation step prevents accidental deletion.

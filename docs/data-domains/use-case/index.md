@@ -13,6 +13,7 @@ A specific interaction or workflow performed by one or more roles
 
 ## Related Use Cases
 
+- [Add a role to a use case](../../use-cases/add-a-role-to-a-use-case/)
 - [Add a use case to a project](../../use-cases/add-a-use-case-to-a-project/)
 - [Edit a use case in a project](../../use-cases/edit-a-use-case-in-a-project/)
 - [Delete a use case from a project](../../use-cases/delete-a-use-case-from-a-project/)

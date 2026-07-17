@@ -38,6 +38,7 @@ class InMemoryProjectRepository implements ProjectRepository {
       useCases: input.useCases.map((name) => ({ name, description: '' })),
       dataDomains: [],
       useCaseDataDomains: {},
+      useCaseRoles: {},
       dataDomainAttributes: {},
     }
 
@@ -87,7 +88,19 @@ class InMemoryProjectRepository implements ProjectRepository {
 
     const updatedRoles: Role[] = [...project.roles]
     updatedRoles[currentIndex] = { name: normalizedNextRole, description: nextDescription.trim() }
-    const updatedProject = { ...project, roles: updatedRoles }
+    const updatedProject = {
+      ...project,
+      roles: updatedRoles,
+      useCaseRoles:
+        normalizedCurrentRole === normalizedNextRole
+          ? project.useCaseRoles
+          : Object.fromEntries(
+              Object.entries(project.useCaseRoles).map(([useCaseName, roles]) => [
+                useCaseName,
+                roles.map((roleName) => (roleName === normalizedCurrentRole ? normalizedNextRole : roleName)),
+              ]),
+            ),
+    }
     this.projects = this.projects.map((value) => (value.id === projectId ? updatedProject : value))
     return updatedProject
   }
@@ -106,6 +119,12 @@ class InMemoryProjectRepository implements ProjectRepository {
     const updatedProject = {
       ...project,
       roles: project.roles.filter((value) => value.name !== normalizedRole),
+      useCaseRoles: Object.fromEntries(
+        Object.entries(project.useCaseRoles).map(([useCaseName, roles]) => [
+          useCaseName,
+          roles.filter((roleName) => roleName !== normalizedRole),
+        ]),
+      ),
     }
     this.projects = this.projects.map((value) => (value.id === projectId ? updatedProject : value))
     return updatedProject
@@ -154,7 +173,28 @@ class InMemoryProjectRepository implements ProjectRepository {
 
     const updatedUseCases: UseCase[] = [...project.useCases]
     updatedUseCases[currentIndex] = { name: normalizedNextUseCase, description: nextDescription.trim() }
-    const updatedProject = { ...project, useCases: updatedUseCases }
+    const updatedProject = {
+      ...project,
+      useCases: updatedUseCases,
+      useCaseDataDomains:
+        normalizedCurrentUseCase === normalizedNextUseCase
+          ? project.useCaseDataDomains
+          : Object.fromEntries(
+              Object.entries(project.useCaseDataDomains).map(([useCaseName, domains]) => [
+                useCaseName === normalizedCurrentUseCase ? normalizedNextUseCase : useCaseName,
+                domains,
+              ]),
+            ),
+      useCaseRoles:
+        normalizedCurrentUseCase === normalizedNextUseCase
+          ? project.useCaseRoles
+          : Object.fromEntries(
+              Object.entries(project.useCaseRoles).map(([useCaseName, roles]) => [
+                useCaseName === normalizedCurrentUseCase ? normalizedNextUseCase : useCaseName,
+                roles,
+              ]),
+            ),
+    }
     this.projects = this.projects.map((value) => (value.id === projectId ? updatedProject : value))
     return updatedProject
   }
@@ -173,6 +213,12 @@ class InMemoryProjectRepository implements ProjectRepository {
     const updatedProject = {
       ...project,
       useCases: project.useCases.filter((value) => value.name !== normalizedUseCase),
+      useCaseDataDomains: Object.fromEntries(
+        Object.entries(project.useCaseDataDomains).filter(([useCaseName]) => useCaseName !== normalizedUseCase),
+      ),
+      useCaseRoles: Object.fromEntries(
+        Object.entries(project.useCaseRoles).filter(([useCaseName]) => useCaseName !== normalizedUseCase),
+      ),
     }
     this.projects = this.projects.map((value) => (value.id === projectId ? updatedProject : value))
     return updatedProject
@@ -269,6 +315,52 @@ class InMemoryProjectRepository implements ProjectRepository {
     const updated = current.filter((d) => d.name !== domain)
     this.useCaseDomains.set(key, updated)
     return updated
+  }
+
+  async getUseCaseRoles(projectId: number, useCase: string) {
+    const project = this.projects.find((p) => p.id === projectId)
+    if (!project) return []
+    const linkedRoleNames = project.useCaseRoles[useCase] ?? []
+    return linkedRoleNames.map((roleName) => {
+      const knownRole = project.roles.find((role) => role.name === roleName)
+      return knownRole ?? { name: roleName, description: '' }
+    })
+  }
+
+  async addUseCaseRole(projectId: number, useCase: string, role: string) {
+    const project = this.projects.find((p) => p.id === projectId)
+    if (!project) return []
+    const normalizedRole = this.normalizeAndValidateTextField(role, 'Role')
+    const current = project.useCaseRoles[useCase] ?? []
+    const next = current.includes(normalizedRole) ? current : [...current, normalizedRole]
+    const updatedProject = {
+      ...project,
+      useCaseRoles: {
+        ...project.useCaseRoles,
+        [useCase]: next,
+      },
+    }
+    this.projects = this.projects.map((value) => (value.id === projectId ? updatedProject : value))
+    return this.getUseCaseRoles(projectId, useCase)
+  }
+
+  async removeUseCaseRole(projectId: number, useCase: string, role: string) {
+    const project = this.projects.find((p) => p.id === projectId)
+    if (!project) return []
+    const normalizedRole = this.normalizeAndValidateTextField(role, 'Role')
+    const current = project.useCaseRoles[useCase] ?? []
+    if (!current.includes(normalizedRole)) {
+      throw new Error('Role link not found')
+    }
+    const updatedProject = {
+      ...project,
+      useCaseRoles: {
+        ...project.useCaseRoles,
+        [useCase]: current.filter((roleName) => roleName !== normalizedRole),
+      },
+    }
+    this.projects = this.projects.map((value) => (value.id === projectId ? updatedProject : value))
+    return this.getUseCaseRoles(projectId, useCase)
   }
 
   private dataDomainAttributes: Map<string, DataDomainAttribute[]> = new Map()
@@ -500,6 +592,70 @@ describe('App', () => {
 
     await waitFor(() => {
       expect(screen.queryByText('Auditor')).not.toBeInTheDocument()
+    })
+  })
+
+  it('links and unlinks a role to a use case', async () => {
+    const repository = new InMemoryProjectRepository()
+
+    render(
+      <MemoryRouter initialEntries={['/projects/new']}>
+        <App repository={repository} />
+      </MemoryRouter>,
+    )
+
+    fireEvent.change(screen.getByLabelText('Project name'), { target: { value: 'Workflow Spec' } })
+    fireEvent.change(screen.getByLabelText('Roles (one per line)'), {
+      target: { value: 'Manager\nAnalyst' },
+    })
+    fireEvent.change(screen.getByLabelText('Use cases (one per line)'), {
+      target: { value: 'Approve request' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Save project' }))
+
+    await waitFor(() => {
+      expect(screen.getByRole('link', { name: 'Manage use cases' })).toBeInTheDocument()
+    })
+
+    fireEvent.click(screen.getByRole('link', { name: 'Manage use cases' }))
+
+    await waitFor(() => {
+      expect(screen.getByText('Approve request')).toBeInTheDocument()
+    })
+
+    const approveRequestListItem = screen.getByText('Approve request').closest('li')
+    if (!approveRequestListItem) {
+      throw new Error('Approve request list item not found')
+    }
+
+    fireEvent.click(
+      within(approveRequestListItem).getByRole('link', { name: 'Manage roles for use case: Approve request' }),
+    )
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: /Roles - Workflow Spec/i })).toBeInTheDocument()
+      expect(screen.getByText('No roles linked to this use case yet. Use the button above to link one.')).toBeInTheDocument()
+    })
+
+    fireEvent.click(screen.getByRole('link', { name: 'Link role' }))
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Link role' })).toBeInTheDocument()
+    })
+
+    fireEvent.mouseDown(screen.getByLabelText('Role'))
+    fireEvent.click(await screen.findByRole('option', { name: 'Manager' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Link role' }))
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Remove role link: Manager' })).toBeInTheDocument()
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Remove role link: Manager' }))
+
+    await waitFor(() => {
+      expect(screen.queryByText('Manager')).not.toBeInTheDocument()
+      expect(screen.getByText('No roles linked to this use case yet. Use the button above to link one.')).toBeInTheDocument()
     })
   })
 })

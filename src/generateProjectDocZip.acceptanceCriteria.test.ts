@@ -12,6 +12,7 @@ const baseProject: Project = {
   useCases: [],
   dataDomains: [{ name: 'Project', description: 'Project data.' }],
   useCaseDataDomains: {},
+  useCaseRoles: {},
   dataDomainAttributes: {},
 }
 

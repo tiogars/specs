@@ -17,6 +17,7 @@ A collection of roles, use cases, and data domains that define an application sp
 
 - [Create a project](../../use-cases/create-a-project/)
 - [View saved projects](../../use-cases/view-saved-projects/)
+- [Add a role to a use case](../../use-cases/add-a-role-to-a-use-case/)
 - [Add a role to a project](../../use-cases/add-a-role-to-a-project/)
 - [Edit a role in a project](../../use-cases/edit-a-role-in-a-project/)
 - [Delete a role from a project](../../use-cases/delete-a-role-from-a-project/)

@@ -15,6 +15,7 @@ nav:
   - Use Cases:
       - 'Create a project': use-cases/create-a-project/index.md
       - 'View saved projects': use-cases/view-saved-projects/index.md
+      - 'Add a role to a use case': use-cases/add-a-role-to-a-use-case/index.md
       - 'Add a role to a project': use-cases/add-a-role-to-a-project/index.md
       - 'Edit a role in a project': use-cases/edit-a-role-in-a-project/index.md
       - 'Delete a role from a project': use-cases/delete-a-role-from-a-project/index.md

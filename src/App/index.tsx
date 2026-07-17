@@ -10,6 +10,8 @@ import ProjectDetailPage from '../pages/projects/ProjectDetailPage'
 import ProjectRolesPage from '../pages/roles/ProjectRolesPage'
 import RoleCreatePage from '../pages/roles/RoleCreatePage'
 import RoleEditPage from '../pages/roles/RoleEditPage'
+import UseCaseRoleLinkPage from '../pages/roles/UseCaseRoleLinkPage'
+import UseCaseRolesPage from '../pages/roles/UseCaseRolesPage'
 import ProjectUseCasesPage from '../pages/usecases/ProjectUseCasesPage'
 import UseCaseCreatePage from '../pages/usecases/UseCaseCreatePage'
 import UseCaseEditPage from '../pages/usecases/UseCaseEditPage'
@@ -93,6 +95,14 @@ const App = ({ repository }: AppProps) => {
             <Route
               path="/projects/:projectId/use-cases/:ucValue/data-domains"
               element={<UseCaseDataDomainsPage repository={resolvedRepository} />}
+            />
+            <Route
+              path="/projects/:projectId/use-cases/:ucValue/roles"
+              element={<UseCaseRolesPage repository={resolvedRepository} />}
+            />
+            <Route
+              path="/projects/:projectId/use-cases/:ucValue/roles/link"
+              element={<UseCaseRoleLinkPage repository={resolvedRepository} />}
             />
             <Route
               path="/projects/:projectId/use-cases/:ucValue/data-domains/link"

@@ -207,7 +207,14 @@ function buildReadme(project: Project): string {
   ].join('\n')
 }
 
-function buildRoleDoc(role: { name: string; description: string }): string {
+function buildRoleDoc(role: { name: string; description: string }, relatedUseCases: { name: string }[]): string {
+  const relatedUseCaseList =
+    relatedUseCases.length > 0
+      ? relatedUseCases
+          .map((useCase) => toMarkdownListItem(`[${useCase.name}](../../use-cases/${toSlug(useCase.name) || 'use-case'}/)`))
+          .join('\n')
+      : '_No related use cases defined._'
+
   const lines: string[] = [
     `# ${role.name}`,
     '',
@@ -220,11 +227,19 @@ function buildRoleDoc(role: { name: string; description: string }): string {
     '- Define this role contribution to each relevant use case.',
     '- Keep role permissions and expectations explicit and testable.',
     '',
+    '## Related Use Cases',
+    '',
+    relatedUseCaseList,
+    '',
   ]
   return lines.join('\n')
 }
 
-function buildUseCaseDoc(useCase: { name: string; description: string }, dataDomains: DataDomain[]): string {
+function buildUseCaseDoc(
+  useCase: { name: string; description: string },
+  dataDomains: DataDomain[],
+  roles: { name: string; description: string }[],
+): string {
   const lines: string[] = [
     `# ${useCase.name}`,
     '',
@@ -246,6 +261,20 @@ function buildUseCaseDoc(useCase: { name: string; description: string }, dataDom
           .join('\n')
       : '_No related data domains defined._'
   lines.push('## Related Data Domains', '', listBody, '')
+
+  const relatedRolesList =
+    roles.length > 0
+      ? roles
+          .map(
+            (role) =>
+              toMarkdownListItem(
+                `[${role.name}](../../roles/${toSlug(role.name) || 'role'}/): ${withFallback(role.description, 'No description.')}`,
+              ),
+          )
+          .join('\n')
+      : '_No related roles defined._'
+  lines.push('## Related Roles', '', relatedRolesList, '')
+
   const acceptanceCriteria = buildAcceptanceCriteria(useCase.name)
   lines.push(
     '## Suggested Acceptance Criteria',
@@ -296,7 +325,11 @@ export async function generateProjectDocZip(project: Project): Promise<ArrayBuff
 
   project.roles.forEach((role, index) => {
     const slug = toSlug(role.name) || `role-${index + 1}`
-    zip.file(`${projectSlug}/roles/${slug}/index.md`, buildRoleDoc(role))
+    const relatedUseCases = project.useCases.filter((useCase) => {
+      const linkedRoles = project.useCaseRoles[useCase.name] ?? []
+      return linkedRoles.includes(role.name)
+    })
+    zip.file(`${projectSlug}/roles/${slug}/index.md`, buildRoleDoc(role, relatedUseCases))
   })
 
   project.useCases.forEach((useCase, index) => {
@@ -306,7 +339,12 @@ export async function generateProjectDocZip(project: Project): Promise<ArrayBuff
       const knownDomain = project.dataDomains.find((domain) => domain.name === domainName)
       return knownDomain ?? { name: domainName, description: '' }
     })
-    zip.file(`${projectSlug}/use-cases/${slug}/index.md`, buildUseCaseDoc(useCase, relatedDomains))
+    const relatedRoleNames = project.useCaseRoles[useCase.name] ?? []
+    const relatedRoles = relatedRoleNames.map((roleName) => {
+      const knownRole = project.roles.find((role) => role.name === roleName)
+      return knownRole ?? { name: roleName, description: '' }
+    })
+    zip.file(`${projectSlug}/use-cases/${slug}/index.md`, buildUseCaseDoc(useCase, relatedDomains, relatedRoles))
   })
 
   project.dataDomains.forEach((domain, domainIndex) => {
