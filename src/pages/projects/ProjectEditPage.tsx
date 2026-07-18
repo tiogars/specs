@@ -41,7 +41,7 @@ const ProjectEditPage = ({ repository }: ProjectEditPageProps) => {
     setIsSaving(true)
     setError(null)
     try {
-      const updated = await repository.updateProject(id, values.name.trim(), values.description.trim())
+      const updated = await repository.updateProject(id, values.name, values.description)
       if (!updated) {
         setError('Unable to update project. It may have been deleted.')
         return
