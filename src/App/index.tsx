@@ -7,6 +7,7 @@ import Header from '../components/Header'
 import ProjectsListPage from '../pages/projects/ProjectsListPage'
 import ProjectCreatePage from '../pages/projects/ProjectCreatePage'
 import ProjectDetailPage from '../pages/projects/ProjectDetailPage'
+import ProjectEditPage from '../pages/projects/ProjectEditPage'
 import ProjectRolesPage from '../pages/roles/ProjectRolesPage'
 import RoleCreatePage from '../pages/roles/RoleCreatePage'
 import RoleEditPage from '../pages/roles/RoleEditPage'
@@ -74,6 +75,7 @@ const App = ({ repository }: AppProps) => {
             <Route path="/projects" element={<ProjectsListPage repository={resolvedRepository} />} />
             <Route path="/projects/new" element={<ProjectCreatePage repository={resolvedRepository} />} />
             <Route path="/projects/:projectId" element={<ProjectDetailPage repository={resolvedRepository} />} />
+            <Route path="/projects/:projectId/edit" element={<ProjectEditPage repository={resolvedRepository} />} />
             <Route
               path="/projects/:projectId/roles"
               element={<ProjectRolesPage repository={resolvedRepository} />}

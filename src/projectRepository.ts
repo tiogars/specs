@@ -52,6 +52,7 @@ export type ProjectRepository = {
   listProjects: () => Promise<Project[]>
   getProject: (projectId: number) => Promise<Project | null>
   createProject: (input: CreateProjectInput) => Promise<Project>
+  updateProject: (projectId: number, name: string, description: string) => Promise<Project | null>
   addProjectRole: (projectId: number, role: string, description?: string) => Promise<Project | null>
   updateProjectRole: (
     projectId: number,
@@ -829,6 +830,20 @@ export function createPgliteProjectRepository(): ProjectRepository {
         ),
       )
 
+      return hydrateProject(db, project)
+    },
+
+    async updateProject(projectId, name, description) {
+      const db = await getDatabase()
+      const normalizedName = normalizeAndValidateTextField(name, 'Project name')
+      const result = await db.query<DbProject>(
+        'UPDATE projects SET name = $1, description = $2 WHERE id = $3 RETURNING id, name, description, is_default',
+        [normalizedName, description.trim(), projectId],
+      )
+      const project = result.rows[0]
+      if (!project) {
+        return null
+      }
       return hydrateProject(db, project)
     },
 
