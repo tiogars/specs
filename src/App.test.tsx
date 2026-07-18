@@ -50,6 +50,17 @@ class InMemoryProjectRepository implements ProjectRepository {
     return project
   }
 
+  async updateProject(projectId: number, name: string, description: string) {
+    const project = this.projects.find((value) => value.id === projectId)
+    if (!project) {
+      return null
+    }
+    const normalizedName = this.normalizeAndValidateTextField(name, 'Project name')
+    const updatedProject = { ...project, name: normalizedName, description: description.trim() }
+    this.projects = this.projects.map((value) => (value.id === projectId ? updatedProject : value))
+    return updatedProject
+  }
+
   async addProjectRole(projectId: number, role: string, description = '') {
     const project = this.projects.find((value) => value.id === projectId)
     if (!project) {

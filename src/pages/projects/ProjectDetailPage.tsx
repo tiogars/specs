@@ -13,6 +13,7 @@ import {
 } from '@mui/material'
 import AutoStoriesIcon from '@mui/icons-material/AutoStories'
 import DownloadIcon from '@mui/icons-material/Download'
+import EditIcon from '@mui/icons-material/Edit'
 import FactCheckIcon from '@mui/icons-material/FactCheck'
 import GroupsIcon from '@mui/icons-material/Groups'
 import StorageIcon from '@mui/icons-material/Storage'
@@ -92,18 +93,28 @@ const ProjectDetailPage = ({ repository }: ProjectDetailPageProps) => {
     <Stack spacing={3}>
       <Stack direction="row" spacing={1} sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
         <Typography variant="h4">{project.name}</Typography>
-        <Tooltip title="Download documentation as ZIP">
-          <span>
-            <Button
-              disabled={isDownloading}
-              onClick={handleDownloadDocs}
-              startIcon={<DownloadIcon />}
-              variant="outlined"
-            >
-              Download docs
-            </Button>
-          </span>
-        </Tooltip>
+        <Stack direction="row" spacing={1}>
+          <Button
+            component={RouterLink}
+            to={`/projects/${project.id}/edit`}
+            startIcon={<EditIcon />}
+            variant="outlined"
+          >
+            Edit project
+          </Button>
+          <Tooltip title="Download documentation as ZIP">
+            <span>
+              <Button
+                disabled={isDownloading}
+                onClick={handleDownloadDocs}
+                startIcon={<DownloadIcon />}
+                variant="outlined"
+              >
+                Download docs
+              </Button>
+            </span>
+          </Tooltip>
+        </Stack>
       </Stack>
       {project.description ? <Typography color="text.secondary">{project.description}</Typography> : null}
 

@@ -8,6 +8,7 @@ const mockRepository: ProjectRepository = {
   listProjects: vi.fn(),
   getProject: vi.fn(),
   createProject: vi.fn(),
+  updateProject: vi.fn(),
   addProjectRole: vi.fn(),
   updateProjectRole: vi.fn(),
   removeProjectRole: vi.fn(),
