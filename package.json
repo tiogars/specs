@@ -20,7 +20,7 @@
     "@mui/icons-material": "9.2.0",
     "@mui/material": "9.2.0",
     "jszip": "3.10.1",
-    "react": "^19.2.7",
+    "react": "^19.2.8",
     "react-dom": "^19.2.7",
     "react-hook-form": "7.81.0",
     "react-router-dom": "7.18.1",
